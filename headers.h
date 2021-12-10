@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include "./data-structures/circQueue.h"
+#include "./data-structures/minHeap.h"
 
 typedef short bool;
 #define true 1
