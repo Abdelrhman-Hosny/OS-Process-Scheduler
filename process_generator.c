@@ -11,6 +11,7 @@ int msgid, currentProcessIndex, timeToWait;
 void clearResources(int);
 struct process *processes;
 int processCount;
+int scheduler_fork;
 
 int main(int argc, char *argv[])
 {
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
         execve(argv[0], &argv[0], NULL);
     }
 
-    int scheduler_fork = fork();
+    scheduler_fork = fork();
     if (scheduler_fork == 0)
     {
         // scheduler code
@@ -97,6 +98,9 @@ void alarm_handler(int sig)
         exit(1);
     }
     printf("sent process %d\n", currentProcessIndex);
+    
+    kill(scheduler_fork, SIGUSR1); // sending signal to scheduler to recieve process from buffer 
+    
     // 2. Increment the current process index.
     currentProcessIndex++;
     // 3. Calculate the time to wait for the next process.
