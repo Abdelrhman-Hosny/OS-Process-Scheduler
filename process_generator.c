@@ -102,7 +102,8 @@ void alarm_handler(int sig)
     // 3. Calculate the time to wait for the next process.
     timeToWait = processes[currentProcessIndex].arrivalTime - getClk();
 
-    if (currentProcessIndex == processCount)
+    // TODO Exit the program when processes are finished not sent.
+    if (currentProcessIndex == processCount + 1)
     {
         printf("finished\n");
         raise(SIGINT);
