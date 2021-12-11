@@ -15,7 +15,7 @@ struct process *readProccesses(char *fileName, int *countArr)
     fp = fopen(file, "r");
     if (fp == NULL)
     {
-        printf("Error in opening the file");
+        printf("processes.txt not found\n");
         exit(0);
     }
     //counting number of lines to allocate the memory

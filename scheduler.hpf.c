@@ -37,12 +37,15 @@ int main(int argc, char *argv[])
             if (rec_val == -1)
             {
                 // message queue was empty
-                break;
+                
             }
             else
             {
                 // add process to heap
                 struct process proc = msg.proc;
+                char log_message[100];
+                sprintf(log_message, "Process %d added to heap at time %d\n", proc.processId, getClk());
+                write_to_file("proc.txt", log_message);
                 push_heap(&heap, proc, proc.priority);
             }
         // }
@@ -56,7 +59,7 @@ int main(int argc, char *argv[])
             // it will be executed
 
             start_time = getClk();
-
+            pop_heap(&heap);
             int pid = fork();
 
             if (pid == -1)
@@ -65,12 +68,12 @@ int main(int argc, char *argv[])
             else if (pid == 0)
             {
                 // child code
-                // argv = [ name, scheduler-process-id ]
+                
+                // add parameters to child process
                 char scheduler_id[15];
                 char scheduler_name[5];
                 char remaining_time[15];
                 char process_id[15];
-                
                 sprintf(process_id, "%d", picked_proc.processId);
                 sprintf(scheduler_id, "%d", getppid());
                 sprintf(scheduler_name, "%d", HPF);

@@ -38,18 +38,11 @@ int main(int agrc, char *argv[])
             if (time_elapsed == remainingtime)
             {
                 // process is finished
-                char log_message[100];
-                sprintf(log_message, "current time : %d , start time : %d , remaining time : %d", current_time, start_time, remainingtime);
-                write_to_file("./proc.txt", log_message);
                 break;
             }
             else if (time_elapsed > remainingtime)
             {
                 // log error
-                char log_message[100];
-                sprintf(log_message, "current time : %d , start time : %d , remaining time : %d", current_time, start_time, remainingtime);
-                write_to_file("./proc.txt", log_message);
-
                 break;
             }
         }

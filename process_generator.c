@@ -65,7 +65,12 @@ int main(int argc, char *argv[])
     timeToWait = processes[currentProcessIndex].arrivalTime - getClk();
 
     alarm(timeToWait);
-    pause();
+    while (1)
+    {
+        pause();
+        write_to_file("proc.txt", "AFTER PAUSE");
+    }
+    
 }
 
 void clearResources(int signum)
@@ -74,6 +79,7 @@ void clearResources(int signum)
     destroyClk(true);
     // clear msg queue
     msgctl(msgid, IPC_RMID, (struct msqid_ds *)0);
+    // scheduler
     raise(SIGKILL);
 }
 
@@ -104,5 +110,6 @@ void alarm_handler(int sig)
     // 4. Restart the alarm.
     alarm(timeToWait);
     printf("time to wait is %d\n", timeToWait);
-    pause();
+    signal(SIGALRM, alarm_handler);
+    
 }
