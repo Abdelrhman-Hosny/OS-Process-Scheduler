@@ -2,21 +2,21 @@
 #include<stdio.h>
 #include<string.h>
 
-struct Node
+struct MinHeapNode
 {
-    int data;
+    struct process data;
  
     // Lower values indicate
     // higher priority
     int priority;
  
-    struct Node* next;
+    struct MinHeapNode* next;
  
 };
 
 struct MinHeap
 {
-    struct Node* head;
+    struct MinHeapNode* head;
     
 };
 
@@ -27,10 +27,10 @@ struct MinHeap initializeMinHeap()
     return minHeap;
 }
 
-// Function to create a new node
-struct Node* newNode(int d, int p)
+// Function to create a new MinHeapNode
+struct MinHeapNode* newMinHeapNode(struct process d, int p)
 {
-    struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
+    struct MinHeapNode* temp = (struct MinHeapNode*)malloc(sizeof(struct MinHeapNode));
     temp->data = d;
     temp->priority = p;
     temp->next = NULL;
@@ -39,48 +39,49 @@ struct Node* newNode(int d, int p)
 }
  
 // Return the value at head
-int peek(struct MinHeap * heap)
+struct process peek_heap(struct MinHeap * heap)
 {
     if (heap->head == NULL)
-        return -1;
+    {
+        struct process data = initializeProcess(0,0,0, -1);
+        return data;
+    }
     else
     return heap->head->data;
 }
  
 // Removes the element with the
 // highest priority form the list
-int pop(struct MinHeap *heap)
+void pop_heap(struct MinHeap *heap)
 {
-    struct Node* temp = heap->head;
+    if (heap->head == NULL)
+        return;
+    struct MinHeapNode* temp = heap->head;
     heap->head = heap->head->next;
-    int data = temp->data;
     free(temp);
-
-    return data;
 }
  
 // Function to push according to priority
-void push(struct MinHeap* heap, int d, int p)
+void push_heap(struct MinHeap* heap, struct process d, int p)
 {
-    struct Node * head = heap->head;
-    struct Node* start = head;
+    struct MinHeapNode * head = heap->head;
+    struct MinHeapNode* start = head;
     if (head==NULL)
     {
-        heap->head = newNode(d, p);
+        heap->head = newMinHeapNode(d, p);
         return;
     }
     
-    // Create new Node
-    struct Node* temp = newNode(d, p);
+    // Create new MinHeapNode
+    struct MinHeapNode* temp = newMinHeapNode(d, p);
  
     // Special Case: The head of list has
-    // lesser priority than new node. So
-    // insert newnode before head node
-    // and change head node.
+    // lesser priority than new MinHeapNode. So
+    // insert newMinHeapNode before head MinHeapNode
+    // and change head MinHeapNode.
     if (head->priority > p)
     {
-         printf("dashda %d \n", d);
-        // Insert New Node before head
+        // Insert New MinHeapNode before head
         temp->next = head;
         head = temp;
         heap->head = head;
@@ -89,7 +90,7 @@ void push(struct MinHeap* heap, int d, int p)
     {
          
         // Traverse the list and find a
-        // position to insert new node
+        // position to insert new MinHeapNode
         while (start->next != NULL &&
             start->next->priority < p)
         {
@@ -104,7 +105,7 @@ void push(struct MinHeap* heap, int d, int p)
 }
  
 // Function to check is list is empty
-int isEmpty(struct MinHeap* heap)
+int isEmpty_heap(struct MinHeap* heap)
 {
     return (heap->head) == NULL;
 }

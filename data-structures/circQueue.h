@@ -1,17 +1,18 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 
 struct Node
 {
-    int data;
-    struct Node* next;
+    struct process data;
+    struct Node *next;
 };
 
 struct CircularQueue
 {
-    struct Node* front;
-    struct Node* rear;
+    struct Node *front;
+    struct Node *rear;
 };
 
 struct CircularQueue initializeQueue()
@@ -22,18 +23,18 @@ struct CircularQueue initializeQueue()
     return queue;
 }
 
-int isEmpty(struct CircularQueue* queue)
+int isEmpty_queue(struct CircularQueue *queue)
 {
     return queue->front == NULL;
 }
 
-void push(struct CircularQueue* queue, int data)
+void push_queue(struct CircularQueue *queue, struct process data)
 {
-    struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
+    struct Node *temp = (struct Node *)malloc(sizeof(struct Node));
     temp->data = data;
     temp->next = NULL;
 
-    if(isEmpty(queue))
+    if (isEmpty_queue(queue))
     {
         queue->front = temp;
         queue->rear = temp;
@@ -45,29 +46,34 @@ void push(struct CircularQueue* queue, int data)
     }
 }
 
-int pop(struct CircularQueue* queue)
+void pop_queue(struct CircularQueue *queue)
 {
-    if(isEmpty(queue))
+    if (isEmpty_queue(queue))
     {
-        return -1;
+        return;
     }
 
-    // 
-    struct Node* temp = queue->front;
+    //
+    struct Node *temp = queue->front;
     queue->front = queue->front->next;
 
     // if empty make front == rear == NULL
-    if(queue->front == NULL)
+    if (queue->front == NULL)
     {
         queue->rear = NULL;
     }
 
-    // temp for data
-    int temp_data = temp->data;
     free(temp);
-
-    return temp_data;
-
 }
 
+struct process peek_queue(struct CircularQueue *queue)
+{
+    if (isEmpty_queue(queue))
+    {
 
+        struct process data;
+        data.arrivalTime = -1;
+        return data;
+    }
+    return queue->front->data;
+}

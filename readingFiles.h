@@ -1,16 +1,6 @@
-#include"headers.h"
-#include<dirent.h>
 #include<string.h>
 
-struct process
-{
-    int processId;
-    int arrivalTime;
-    int runTime;
-    int remainingTime;
-    int priority;
-};
-struct processes* readProccesses(char* fileName, int *countArr)
+struct process* readProccesses(char* fileName, int *countArr)
 {
     FILE *fp;
     char  line[255];
@@ -19,7 +9,7 @@ struct processes* readProccesses(char* fileName, int *countArr)
    
     //opening the file
     char* file;
-    file = malloc(strlen(fileName)+2);
+    file = (char*)malloc(strlen(fileName)+2);
     strcpy(file,"./");
     strcat(file,fileName);
     fp = fopen(file,"r");

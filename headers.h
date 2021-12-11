@@ -10,20 +10,35 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include "./proc_data.h"
 #include "./data-structures/circQueue.h"
 #include "./data-structures/minHeap.h"
 
+
+typedef short SCHEDULER_TYPE;
+#define RR 0
+#define HPF 1
+#define SRTN 2
+
 typedef short bool;
 #define true 1
-#define false 1
+#define false 0
+
+#define TERMINATED 2
+#define RUNNING 1
+#define WAITING 0
 
 #define SHKEY 300
+
+#define SHKEYPROC 231
 
 
 ///==============================
 //don't mess with this variable//
 int * shmaddr;                 //
+struct process* shmaddrProcess ;        // this is the shared memory between currently running process and the scheduler
 //===============================
+
 
 
 
@@ -66,4 +81,53 @@ void destroyClk(bool terminateAll)
     {
         killpg(getpgrp(), SIGINT);
     }
+}
+
+
+
+// Process shared memory init
+void initShmProc()
+{
+    int shmid = shmget(SHKEYPROC, sizeof(struct process), 0444);
+    while ((int)shmid == -1)
+    {
+        //Make sure that the clock exists
+        printf("Wait! The process shared memory not initialized yet!\n");
+        sleep(1);
+        shmid = shmget(SHKEYPROC, sizeof(struct process), 0444);
+    }
+    shmaddrProcess = (struct process *) shmat(shmid, (void *)0, 0);
+}
+
+
+void setShmProc(struct process* newProc)
+{
+
+    memcpy(shmaddrProcess, newProc, sizeof(struct process));
+
+};
+
+
+struct process getProcess()
+{
+    return *shmaddrProcess;
+}
+
+void destroyShmProc(bool terminateAll)
+{
+    shmdt(shmaddrProcess);
+    if (terminateAll)
+    {
+        killpg(getpgrp(), SIGINT);
+    }
+}
+
+void write_to_file(char *file_name, char *text)
+{
+   FILE * pFile;
+    pFile = fopen(file_name, "w");
+    
+    fprintf(pFile, "%s\n", text);
+    
+    fclose(pFile);
 }
