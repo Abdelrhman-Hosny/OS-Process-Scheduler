@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
 
     signal(SIGCHLD, sig_child_handler);
 
-    // handling signal sent by process generator
-    signal(SIGUSR1, sig_processGen_handler);
+    // handling signal sent by process generator made it SIGCONT(and sigcont sent by child will be handled by SIGCHILD)
+    signal(SIGCONT, sig_processGen_handler);
     
     processRunning = 0 ; // initially no process is running
 
@@ -42,10 +42,15 @@ int main(int argc, char *argv[])
     {
         
         // parent code
-        // raise(SIGSTOP); 
+        raise(SIGSTOP); 
         // TODO:: changed raise sigstop to pause in order to recieve sigusr1
         // how to interpret sigusr1 to SIGCONT so both work(process sig and processGen sig)??
-        pause();
+
+        // my solution for now:
+            // i made processGen send SIGCONT and made handler for it .
+            // process will send sigchild and make handler for it alone
+            // QUESTION ???? How process send SIGCONT there and i recieve it here in SIGCHILD !!!!
+        // pause();
     }
 
     destroyClk(true);
@@ -93,6 +98,7 @@ int schedule_process(){
 
 void sig_child_handler(int signum)
 {
+
     processRunning = 0; // meaning no process is running now
     int finish_time = getClk();
 
@@ -113,7 +119,7 @@ void sig_child_handler(int signum)
 
 void sig_processGen_handler(int signum){
     char log_message[100];
-    sprintf(log_message, "recieved sigusr1");
+    sprintf(log_message, "recieved from process gen");
     write_to_file("proc.txt", log_message);
     // recieving processes will be here in handler
     int rec_val = 0 ;

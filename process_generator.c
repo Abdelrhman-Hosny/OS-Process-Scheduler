@@ -99,7 +99,7 @@ void alarm_handler(int sig)
     }
     printf("sent process %d\n", currentProcessIndex);
     
-    kill(scheduler_fork, SIGUSR1); // sending signal to scheduler to recieve process from buffer 
+    kill(scheduler_fork, SIGCONT); // sending signal to scheduler to recieve process from buffer 
     
     // 2. Increment the current process index.
     currentProcessIndex++;

@@ -1,0 +1,17 @@
+AFTER PAUSE
+recieved from process gen
+Process 1 added to heap at time 9
+
+Process 1 started at 10, remaining time 12
+AFTER PAUSE
+Process 2 added to heap at time 17
+
+Process 1 finished at 22
+recieved from process gen
+Process 2 started at 22, remaining time 11
+Process 3 added to heap at time 24
+
+AFTER PAUSE
+Process 1 finished at 33
+recieved from process gen
+Process 3 started at 33, remaining time 21
