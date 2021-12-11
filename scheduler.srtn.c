@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
             // child code
 
             // argv = [ name, scheduler-process-id ]
-            char *argv[] = {"./process", getppid()};
+            char *argv[] = {"./process", stoi(getppid()), 0};
             execve(argv[0], &argv[0], NULL);
         }
         else

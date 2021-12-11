@@ -1,0 +1,5 @@
+Process 1 started at 2, remaining time 0
+Process 1 finished at 2
+Process 1 started at 2, remaining time 3
+current time : 5 , start time : 2 , remaining time : 3
+Process 1 finished at 5

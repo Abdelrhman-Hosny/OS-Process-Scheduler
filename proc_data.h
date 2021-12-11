@@ -32,3 +32,20 @@ struct process initializeProcess(
     return p;
 }
 
+void initializeProcessPointer(
+    struct process *p,
+    int runtime, int priority,
+    int processId, int arrivalTime)
+{
+    p->runTime = runtime;
+    p->priority = priority;
+    p->processId = processId;
+    p->arrivalTime = arrivalTime;
+    p->remainingTime = runtime;
+
+    p->state = 0;
+    p->waitingTime = 0;
+    p->executionTime = 0;
+    p->finishTime = -1;
+}
+

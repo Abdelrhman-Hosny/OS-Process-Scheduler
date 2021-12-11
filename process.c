@@ -13,9 +13,12 @@ int main(int agrc, char *argv[])
     //TODO it needs to get the remaining time from somewhere
     remainingtime = atoi(argv[1]);
     pid_t scheduler_pid = atoi(argv[2]);
-    SCHEDULER_TYPE sched_type = argv[3] - '0';
+    SCHEDULER_TYPE sched_type = atoi(argv[3]);
+    int pid = atoi(argv[4]);
 
-    write_to_file("/home/hos/Coding/OS/Project/OS-Process-Scheduler/proc.log", "Process 1 started\n");
+    char log_message[100];
+    sprintf(log_message, "Process %d started at %d, remaining time %d", pid, start_time, remainingtime);
+    write_to_file("./proc.txt", log_message);
 
     switch (sched_type)
     {
@@ -35,11 +38,17 @@ int main(int agrc, char *argv[])
             if (time_elapsed == remainingtime)
             {
                 // process is finished
+                char log_message[100];
+                sprintf(log_message, "current time : %d , start time : %d , remaining time : %d", current_time, start_time, remainingtime);
+                write_to_file("./proc.txt", log_message);
                 break;
             }
             else if (time_elapsed > remainingtime)
             {
                 // log error
+                char log_message[100];
+                sprintf(log_message, "current time : %d , start time : %d , remaining time : %d", current_time, start_time, remainingtime);
+                write_to_file("./proc.txt", log_message);
 
                 break;
             }
@@ -47,6 +56,7 @@ int main(int agrc, char *argv[])
         break;
     }
 
+    kill(scheduler_pid, SIGCONT);
     
     destroyClk(false);
     

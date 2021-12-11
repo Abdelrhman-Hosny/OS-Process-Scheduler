@@ -52,8 +52,6 @@ int main(int argc, char *argv[])
         if (picked_proc.arrivalTime != -1)
         {
             // Queue is not empty
-            //upon termination release the clock resources
-
             // After the schedule picks the process
             // it will be executed
 
@@ -67,15 +65,22 @@ int main(int argc, char *argv[])
             else if (pid == 0)
             {
                 // child code
-                printf("arr time : %d\n", picked_proc.arrivalTime);
                 // argv = [ name, scheduler-process-id ]
-                char *argv[] = {"./process.out",picked_proc.remainingTime, getppid(),HPF, 0};
+                char scheduler_id[15];
+                char scheduler_name[5];
+                char remaining_time[15];
+                char process_id[15];
+                
+                sprintf(process_id, "%d", picked_proc.processId);
+                sprintf(scheduler_id, "%d", getppid());
+                sprintf(scheduler_name, "%d", HPF);
+                sprintf(remaining_time, "%d", picked_proc.remainingTime);
+                char *argv[] = {"./process.out", remaining_time, scheduler_id, scheduler_name, process_id, 0};
                 execve(argv[0], &argv[0], NULL);
             }
             else
             {
                 // parent code
-
                 raise(SIGSTOP);
             }
         }
@@ -88,7 +93,9 @@ void sig_child_handler(int signum)
 {
     int finish_time = getClk();
 
-    write_to_file("output.txt", "At time, Process is terminated\n");
+    char log_message[100];
+    sprintf(log_message, "Process %d finished at %d", 1, finish_time);
 
-    raise(SIGCONT);
+    write_to_file("proc.txt", log_message);
+
 }

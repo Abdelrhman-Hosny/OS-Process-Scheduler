@@ -125,7 +125,7 @@ void destroyShmProc(bool terminateAll)
 void write_to_file(char *file_name, char *text)
 {
    FILE * pFile;
-    pFile = fopen(file_name, "w");
+    pFile = fopen(file_name, "a");
     
     fprintf(pFile, "%s\n", text);
     
