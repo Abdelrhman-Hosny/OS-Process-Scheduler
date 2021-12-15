@@ -22,10 +22,10 @@ int main(int argc, char *argv[])
     char *fileName = "processes.txt";
     processCount = 0;
     processes = readProccesses(fileName, &processCount);
-    // for (int i = 0; i < processCount; i++)
-    // {
-    //     printf("%d %d %d %d\n", processes[i].processId, processes[i].arrivalTime, processes[i].remainingTime, processes[i].priority);
-    // }
+    for (int i = 0; i < processCount; i++)
+    {
+        printf("%d %d %d %d\n", processes[i].processId, processes[i].arrivalTime, processes[i].remainingTime, processes[i].priority);
+    }
 
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
     // 3. Initiate and create the scheduler and clock processes.
@@ -69,9 +69,7 @@ int main(int argc, char *argv[])
     while (1)
     {
         pause();
-        write_to_file("proc.txt", "AFTER PAUSE");
     }
-    
 }
 
 void clearResources(int signum)
@@ -89,6 +87,7 @@ void alarm_handler(int sig)
     //TODO Handle the alarm signal
     // 1. Send the process to the scheduler.
     printf("alarm\n");
+
     struct msgbuffer msg;
     msg.mtype = 1;
     msg.proc = processes[currentProcessIndex];
@@ -98,11 +97,28 @@ void alarm_handler(int sig)
         exit(1);
     }
     printf("sent process %d\n", currentProcessIndex);
-    
-    kill(scheduler_fork, SIGCONT); // sending signal to scheduler to recieve process from buffer 
-    
     // 2. Increment the current process index.
     currentProcessIndex++;
+
+    while (currentProcessIndex < processCount &&
+           processes[currentProcessIndex].arrivalTime == processes[currentProcessIndex - 1].arrivalTime)
+    {
+
+        struct msgbuffer msg;
+        msg.mtype = 1;
+        msg.proc = processes[currentProcessIndex];
+        if (msgsnd(msgid, &msg, sizeof(msg.proc), 0) == -1)
+        {
+            perror("msgsnd");
+            exit(1);
+        }
+        printf("sent process %d\n", currentProcessIndex);
+        // 2. Increment the current process index.
+        currentProcessIndex++;
+    }
+
+    kill(scheduler_fork, SIGUSR1); // sending signal to scheduler to recieve process from buffer
+
     // 3. Calculate the time to wait for the next process.
     timeToWait = processes[currentProcessIndex].arrivalTime - getClk();
 
@@ -112,9 +128,9 @@ void alarm_handler(int sig)
         printf("finished\n");
         raise(SIGINT);
     }
+
     // 4. Restart the alarm.
     alarm(timeToWait);
     printf("time to wait is %d\n", timeToWait);
     signal(SIGALRM, alarm_handler);
-    
 }

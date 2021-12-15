@@ -11,4 +11,5 @@ clean:
 all: clean build
 
 run:
+	echo "start" > proc.txt
 	./process_generator.out

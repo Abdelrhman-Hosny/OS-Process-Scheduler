@@ -1,17 +1,16 @@
-AFTER PAUSE
-recieved from process gen
-Process 1 added to heap at time 9
+start
+Process 1 added to heap at time 9 , top id = 0 
 
-Process 1 started at 10, remaining time 12
-AFTER PAUSE
-Process 2 added to heap at time 17
+Process 2 added to heap at time 9 , top id = 0 
 
-Process 1 finished at 22
-recieved from process gen
-Process 2 started at 22, remaining time 11
-Process 3 added to heap at time 24
+Process 2 started at 9, remaining time 25
+Process 3 added to heap at time 12 , top id = 1 
 
-AFTER PAUSE
-Process 1 finished at 33
-recieved from process gen
-Process 3 started at 33, remaining time 21
+Process 4 added to heap at time 23 , top id = 1 
+
+Process 1 finished at 34
+Process 4 started at 34, remaining time 20
+Process 1 finished at 54
+Process 1 started at 54, remaining time 16
+Process 1 finished at 70
+Process 3 started at 70, remaining time 27

@@ -12,8 +12,8 @@ void sig_processGen_handler(int signum);
 int msgid;
 struct MinHeap heap;
 
-int processRunning ; // 0 if no process currently running
-                     // 1 if there is currently a process running
+int processRunning; // 0 if no process currently running
+                    // 1 if there is currently a process running
 
 int main(int argc, char *argv[])
 {
@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
     signal(SIGCHLD, sig_child_handler);
 
     // handling signal sent by process generator made it SIGCONT(and sigcont sent by child will be handled by SIGCHILD)
-    signal(SIGCONT, sig_processGen_handler);
-    
-    processRunning = 0 ; // initially no process is running
+    signal(SIGUSR1, sig_processGen_handler);
+
+    processRunning = 0; // initially no process is running
 
     // init message queue
     key_t key = ftok("./clk.c", 'a');
@@ -40,28 +40,21 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        
         // parent code
-        raise(SIGSTOP); 
-        // TODO:: changed raise sigstop to pause in order to recieve sigusr1
-        // how to interpret sigusr1 to SIGCONT so both work(process sig and processGen sig)??
-
-        // my solution for now:
-            // i made processGen send SIGCONT and made handler for it .
-            // process will send sigchild and make handler for it alone
-            // QUESTION ???? How process send SIGCONT there and i recieve it here in SIGCHILD !!!!
-        // pause();
+        pause();
     }
 
     destroyClk(true);
 }
 
 // return 1 if scheduling process succeeded; 0 if no process in queue so failed
-int schedule_process(){
+int schedule_process()
+{
     struct process picked_proc = peek_heap(&heap);
-        
+
     if (picked_proc.arrivalTime != -1)
     {
+
         // Queue is not empty
         // After the schedule picks the process
         // it will be executed
@@ -76,7 +69,7 @@ int schedule_process(){
         else if (pid == 0)
         {
             // child code
-                
+
             // add parameters to child process
             char scheduler_id[15];
             char scheduler_name[5];
@@ -89,11 +82,10 @@ int schedule_process(){
             char *argv[] = {"./process.out", remaining_time, scheduler_id, scheduler_name, process_id, 0};
             execve(argv[0], &argv[0], NULL);
         }
-    }else
-    {
-        return 0 ;
+
+        return 1;
     }
-    return 1; 
+    return 0;
 }
 
 void sig_child_handler(int signum)
@@ -107,41 +99,40 @@ void sig_child_handler(int signum)
 
     write_to_file("proc.txt", log_message);
 
-
-
     int succeeded = schedule_process();
-    if(succeeded)
+    if (succeeded)
     {
         processRunning = 1;
     }
-
 }
 
-void sig_processGen_handler(int signum){
-    char log_message[100];
-    sprintf(log_message, "recieved from process gen");
-    write_to_file("proc.txt", log_message);
+void sig_processGen_handler(int signum)
+{
+    // char log_message[100];
+    // sprintf(log_message, "recieved from process gen");recieved from process gen
+    // write_to_file("proc.txt", log_message);
     // recieving processes will be here in handler
-    int rec_val = 0 ;
+    int rec_val = 0;
     while (rec_val != -1) // meaning message queue is empty
-        {
-            struct msgbuffer msg;
-            rec_val = msgrcv(msgid, (struct msgbuffer *)&msg, sizeof(msg.proc), 0, !IPC_NOWAIT);
+    {
+        struct msgbuffer msg;
+        rec_val = msgrcv(msgid, (struct msgbuffer *)&msg, sizeof(msg.proc), 0, IPC_NOWAIT);
 
-            if(rec_val !=-1) // there's something to recover from queue
-            {
-                // add process to heap
-                struct process proc = msg.proc;
-                char log_message[100];
-                sprintf(log_message, "Process %d added to heap at time %d\n", proc.processId, getClk());
-                write_to_file("proc.txt", log_message);
-                push_heap(&heap, proc, proc.priority);
-                if(processRunning==0)
-                {
-                    schedule_process();
-                    // here no need to check if scheduling failed due to empty queue since i just inserted now
-                    processRunning = 1;
-                }
-            }
+        if (rec_val != -1) // there's something to recover from queue
+        {
+            // add process to heap
+            struct process proc = msg.proc;
+            char log_message[100];
+            push_heap(&heap, proc, proc.priority);
+            sprintf(log_message, "Process %d added to heap at time %d , top id = %d", proc.processId, getClk(), processRunning);
+            write_to_file("proc.txt", log_message);
         }
+    }
+
+    if (processRunning == 0)
+    {
+        schedule_process();
+        // here no need to check if scheduling failed due to empty queue since i just inserted now
+        processRunning = 1;
+    }
 }
