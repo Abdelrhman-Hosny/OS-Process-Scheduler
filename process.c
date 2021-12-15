@@ -22,12 +22,11 @@ int main(int agrc, char *argv[])
 
     switch (sched_type)
     {
-    case RR:
-        /* code */
-        break;
     case SRTN:
         /* code */
         break;
+
+    case RR:
     case HPF:
 
         while (remainingtime > 0)
@@ -48,7 +47,7 @@ int main(int agrc, char *argv[])
         }
         break;
     }
-    
+
     destroyClk(false);
     return pid;
 }
