@@ -10,7 +10,7 @@ struct msgbuffer
     long mtype;
     struct process proc;
 };
-int start_time;
+
 int glob_pid;
 void sig_child_handler(int);
 void sig_processGen_finish(int);
@@ -182,10 +182,11 @@ void sig_processGen_handler(int signum)
         {
             // kill old process and return to heap
             char log_message[100];
-            sprintf(log_message, "Process %d replaced at time %d, remaining time : %d", running_process.processId, getClk(), running_process.remainingTime);
+            sprintf(log_message, "Process %d replaced at time %d, remaining time : %d glob pid is %d: ",running_process.processId, getClk(), running_process.remainingTime,glob_pid);
             write_to_file("proc.txt", log_message);
 
-            kill(glob_pid, SIGUSR1);
+            kill(glob_pid, SIGINT);
+            
             processRunning = 0;
             push_heap(&heap, running_process, running_process.remainingTime);
         }
