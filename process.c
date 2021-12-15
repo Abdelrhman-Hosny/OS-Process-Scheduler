@@ -3,9 +3,12 @@
 /* Modify this file as needed*/
 int remainingtime;
 
+void handle_new_proc_arrival(int);
+
 int main(int agrc, char *argv[])
 {
     initClk();
+    signal(SIGUSR1, handle_new_proc_arrival);
 
     // get clk, running proc from shared memory
     int start_time = getClk();
@@ -17,38 +20,38 @@ int main(int agrc, char *argv[])
     int pid = atoi(argv[4]);
 
     char log_message[100];
-    sprintf(log_message, "Process %d started at %d, remaining time %d", pid, start_time, remainingtime);
+    sprintf(log_message, "::Process %d started at %d, remaining time %d", pid, start_time, remainingtime);
     write_to_file("./proc.txt", log_message);
 
-    switch (sched_type)
+    while (remainingtime > 0)
     {
-    case RR:
-        /* code */
-        break;
-    case SRTN:
-        /* code */
-        break;
-    case HPF:
+        int current_time = getClk();
+        int time_elapsed = current_time - start_time;
 
-        while (remainingtime > 0)
+        if (time_elapsed == remainingtime)
         {
-            int current_time = getClk();
-            int time_elapsed = current_time - start_time;
-
-            if (time_elapsed == remainingtime)
-            {
-                // process is finished
-                break;
-            }
-            else if (time_elapsed > remainingtime)
-            {
-                // log error
-                break;
-            }
+            char log_message2[100];
+            sprintf(log_message2, "%d ", time_elapsed);
+            write_to_file("proc.txt", log_message2);
+            // process is finished
+            break;
         }
-        break;
+        else if (time_elapsed > remainingtime)
+        {
+            char log_message2[100];
+            sprintf(log_message2, "%d ", time_elapsed);
+            write_to_file("proc.txt", log_message2);
+            // log error
+            break;
+        }
     }
-    
+
     destroyClk(false);
     return pid;
+}
+
+void handle_new_proc_arrival(int signum)
+{
+    destroyClk(false);
+    exit(0);
 }
