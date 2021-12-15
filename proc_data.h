@@ -49,3 +49,17 @@ void initializeProcessPointer(
     p->finishTime = -1;
 }
 
+struct process copyProcess(struct process input)
+{
+    struct process copied;
+    copied.runTime = input.runTime;
+    copied.priority = input.priority;
+    copied.processId = input.processId;
+    copied.arrivalTime = input.arrivalTime;
+    copied.state = input.state;
+    copied.waitingTime = input.waitingTime;
+    copied.executionTime = input.executionTime;
+    copied.remainingTime = input.remainingTime;
+    copied.finishTime = input.finishTime;
+    return copied ;
+};

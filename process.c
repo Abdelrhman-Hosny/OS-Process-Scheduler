@@ -17,7 +17,7 @@ int main(int agrc, char *argv[])
     int pid = atoi(argv[4]);
 
     char log_message[100];
-    sprintf(log_message, "Process %d started at %d, remaining time %d", pid, start_time, remainingtime);
+    sprintf(log_message, ":: Process %d started at %d, remaining time %d", pid, start_time, remainingtime);
     write_to_file("./proc.txt", log_message);
 
     switch (sched_type)
