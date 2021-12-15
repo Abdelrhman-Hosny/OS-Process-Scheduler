@@ -6,10 +6,13 @@ struct msgbuffer
     struct process proc;
 };
 int start_time;
-void sig_child_handler(int signum);
-void sig_processGen_handler(int signum);
+void sig_child_handler(int);
+void sig_processGen_finish(int);
+void sig_processGen_handler(int);
+void sig_int_handler(int);
 
 int msgid;
+int isFinished_ProcGen = 0;
 struct MinHeap heap;
 
 int processRunning; // 0 if no process currently running
@@ -24,6 +27,10 @@ int main(int argc, char *argv[])
 
     // handling signal sent by process generator made it SIGCONT(and sigcont sent by child will be handled by SIGCHILD)
     signal(SIGUSR1, sig_processGen_handler);
+
+    signal(SIGUSR2, sig_processGen_finish);
+
+    signal(SIGINT, sig_int_handler);
 
     processRunning = 0; // initially no process is running
 
@@ -43,8 +50,6 @@ int main(int argc, char *argv[])
         // parent code
         pause();
     }
-
-    destroyClk(true);
 }
 
 // return 1 if scheduling process succeeded; 0 if no process in queue so failed
@@ -88,29 +93,53 @@ int schedule_process()
     return 0;
 }
 
+void sig_int_handler(int signum)
+{
+    // scheduler cleanup
+    destroyClk(false);
+
+    exit(0);
+}
+
 void sig_child_handler(int signum)
 {
 
-    processRunning = 0; // meaning no process is running now
-    int finish_time = getClk();
+    int pid, status;
 
-    char log_message[100];
-    sprintf(log_message, "Process %d finished at %d", 1, finish_time);
-
-    write_to_file("proc.txt", log_message);
-
-    int succeeded = schedule_process();
-    if (succeeded)
+    pid = wait(&status);
+    if (WIFEXITED(status))
     {
-        processRunning = 1;
+
+        processRunning = 0; // meaning no process is running now
+        int finish_time = getClk();
+
+        char log_message[100];
+        sprintf(log_message, "Process %d finished at %d", WEXITSTATUS(status), finish_time);
+
+        write_to_file("proc.txt", log_message);
+
+        if (peek_heap(&heap).arrivalTime == -1 && // heap is empty
+            isFinished_ProcGen == 1)
+        {
+            raise(SIGINT);
+        }
+        int succeeded = schedule_process();
+        if (succeeded)
+        {
+            processRunning = 1;
+        }
     }
+}
+
+void sig_processGen_finish(int signum)
+{
+    isFinished_ProcGen = 1;
+    write_to_file("proc.txt", "Process Generator Finished Procs");
 }
 
 void sig_processGen_handler(int signum)
 {
-    // char log_message[100];
-    // sprintf(log_message, "recieved from process gen");recieved from process gen
-    // write_to_file("proc.txt", log_message);
+
     // recieving processes will be here in handler
     int rec_val = 0;
     while (rec_val != -1) // meaning message queue is empty

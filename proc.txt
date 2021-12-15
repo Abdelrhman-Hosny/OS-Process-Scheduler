@@ -1,16 +1,14 @@
 start
-Process 1 added to heap at time 9 , top id = 0 
-
-Process 2 added to heap at time 9 , top id = 0 
-
-Process 2 started at 9, remaining time 25
-Process 3 added to heap at time 12 , top id = 1 
-
-Process 4 added to heap at time 23 , top id = 1 
-
-Process 1 finished at 34
-Process 4 started at 34, remaining time 20
-Process 1 finished at 54
-Process 1 started at 54, remaining time 16
-Process 1 finished at 70
-Process 3 started at 70, remaining time 27
+Process 1 added to heap at time 9 , top id = 0
+Process 2 added to heap at time 9 , top id = 0
+Process 2 started at 9, remaining time 5
+Process 3 added to heap at time 12 , top id = 1
+Process 2 finished at 14
+Process 1 started at 14, remaining time 5
+Process 1 finished at 19
+Process 3 started at 19, remaining time 7
+Process Generator Finished Procs
+Process 4 added to heap at time 23 , top id = 1
+Process 3 finished at 26
+Process 4 started at 26, remaining time 2
+Process 4 finished at 28

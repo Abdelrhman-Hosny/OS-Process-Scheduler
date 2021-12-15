@@ -6,9 +6,10 @@ struct msgbuffer
     long mtype;
     struct process proc;
 };
-void alarm_handler(int sig);
+void alarm_handler(int);
 int msgid, currentProcessIndex, timeToWait;
 void clearResources(int);
+void handle_scheduler_sigchild(int);
 struct process *processes;
 int processCount;
 int scheduler_fork;
@@ -17,6 +18,8 @@ int main(int argc, char *argv[])
 {
     signal(SIGALRM, alarm_handler);
     signal(SIGINT, clearResources);
+    signal(SIGCHLD, handle_scheduler_sigchild);
+
     // TODO Initialization
     // 1. Read the input files.
     char *fileName = "processes.txt";
@@ -79,7 +82,21 @@ void clearResources(int signum)
     // clear msg queue
     msgctl(msgid, IPC_RMID, (struct msqid_ds *)0);
     // scheduler
-    raise(SIGKILL);
+    exit(0);
+}
+
+void handle_scheduler_sigchild(int signum)
+{
+
+    int pid, status;
+    printf("scheduler is dead");
+
+    pid = wait(&status);
+    if (WIFEXITED(status))
+    {
+        if (pid == scheduler_fork)
+            raise(SIGINT);
+    }
 }
 
 void alarm_handler(int sig)
@@ -123,10 +140,10 @@ void alarm_handler(int sig)
     timeToWait = processes[currentProcessIndex].arrivalTime - getClk();
 
     // TODO Exit the program when processes are finished not sent.
-    if (currentProcessIndex == processCount + 1)
+    if (currentProcessIndex == processCount)
     {
         printf("finished\n");
-        raise(SIGINT);
+        kill(scheduler_fork, SIGUSR2);
     }
 
     // 4. Restart the alarm.

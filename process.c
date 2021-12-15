@@ -48,11 +48,7 @@ int main(int agrc, char *argv[])
         }
         break;
     }
-
-    kill(scheduler_pid, SIGCONT);
     
     destroyClk(false);
-    
-    raise(SIGKILL);
-    return 0;
+    return pid;
 }
