@@ -49,9 +49,6 @@ int main(int argc, char *argv[])
 
     // init message queue
 
-    // write_to_file("proc.txt", "message queue initialized");
-
-    // write_to_file("proc.txt", "Queue initialized");
     while (1)
     {
         // parent code
@@ -159,7 +156,6 @@ void sig_processGen_handler(int signum)
 
     // recieving processes will be here in handler
     int rec_val = 0;
-    // write_to_file("proc.txt", "Processes arrived");
     while (rec_val != -1) // meaning message queue is empty
     {
         struct msgbuffer msg;

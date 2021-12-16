@@ -21,17 +21,18 @@ int processRunning; // 0 if no process currently running
 int main(int argc, char *argv[])
 {
 
-    initClk();
-
-    signal(SIGCHLD, sig_child_handler);
-
-    // handling signal sent by process generator made it SIGCONT(and sigcont sent by child will be handled by SIGCHILD)
     signal(SIGUSR1, sig_processGen_handler);
 
     signal(SIGUSR2, sig_processGen_finish);
 
+    heap = initializeMinHeap();
+    signal(SIGCHLD, sig_child_handler);
+
+    // handling signal sent by process generator made it SIGCONT(and sigcont sent by child will be handled by SIGCHILD)
+
     signal(SIGINT, sig_int_handler);
 
+    initClk();
     processRunning = 0; // initially no process is running
 
     // init message queue
@@ -42,8 +43,6 @@ int main(int argc, char *argv[])
         perror("msgget");
         return 1;
     }
-
-    heap = initializeMinHeap();
 
     while (1)
     {
@@ -134,7 +133,6 @@ void sig_child_handler(int signum)
 void sig_processGen_finish(int signum)
 {
     isFinished_ProcGen = 1;
-    write_to_file("proc.txt", "Process Generator Finished Procs");
 }
 
 void sig_processGen_handler(int signum)
