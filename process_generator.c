@@ -7,12 +7,13 @@ struct msgbuffer
     struct process proc;
 };
 void alarm_handler(int);
-int msgid, currentProcessIndex, timeToWait;
+int msgid, currentProcessIndex=0, timeToWait;
 void clearResources(int);
 void handle_scheduler_sigchild(int);
 struct process *processes;
 int processCount;
 int scheduler_fork;
+void initial_send_to_scheduler();
 
 int main(int argc, char *argv[])
 {
@@ -20,18 +21,6 @@ int main(int argc, char *argv[])
     signal(SIGINT, clearResources);
     signal(SIGCHLD, handle_scheduler_sigchild);
 
-    // TODO Initialization
-    // 1. Read the input files.
-    char *fileName = "processes.txt";
-    processCount = 0;
-    processes = readProccesses(fileName, &processCount);
-    for (int i = 0; i < processCount; i++)
-    {
-        printf("%d %d %d %d\n", processes[i].processId, processes[i].arrivalTime, processes[i].remainingTime, processes[i].priority);
-    }
-
-    // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
-    // 3. Initiate and create the scheduler and clock processes.
     int clock_fork = fork();
     if (clock_fork == 0)
     {
@@ -46,17 +35,24 @@ int main(int argc, char *argv[])
     {
         // scheduler code
         //scheduler.out
-        char *argv[] = {"scheduler.out", 0};
+        char *argv[] = {"scheduler.rr.out", 0};
         execve(argv[0], &argv[0], NULL);
     }
 
-    // 4. Use this function after creating the clock process to initialize clock
+
+    char *fileName = "processes.txt";
+    processCount = 0;
+    processes = readProccesses(fileName, &processCount);
+    for (int i = 0; i < processCount; i++)
+    {
+        printf("%d %d %d %d\n", processes[i].processId, processes[i].arrivalTime, processes[i].remainingTime, processes[i].priority);
+    }
+
     initClk();
-    // To get time use this
+    
     int x = getClk();
-    printf("current time is %d\n", x);
-    // TODO Generation Main Loop
-    // 6. Send the information to the scheduler at the appropriate time.
+    // printf("current time is %d\n", x);
+    
     key_t key = ftok("./clk.c", 'a');
     msgid = msgget(key, IPC_CREAT | 0666);
     if (msgid == -1)
@@ -65,7 +61,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    currentProcessIndex = 0;
+    
+
+    initial_send_to_scheduler();
+
     timeToWait = processes[currentProcessIndex].arrivalTime - getClk();
 
     alarm(timeToWait);
@@ -99,11 +98,56 @@ void handle_scheduler_sigchild(int signum)
     }
 }
 
+void initial_send_to_scheduler()
+{
+    if (processes[currentProcessIndex].arrivalTime == 0)
+    {
+        // printf("new function\n");
+        struct msgbuffer msg;
+        msg.mtype = 1;
+        msg.proc = processes[currentProcessIndex];
+        if (msgsnd(msgid, &msg, sizeof(msg.proc), 0) == -1)
+        {
+            perror("msgsnd");
+            exit(1);
+        }
+        // printf("sent process %d\n", currentProcessIndex);
+        // 2. Increment the current process index.
+        currentProcessIndex++;
+
+        while (currentProcessIndex < processCount &&
+               processes[currentProcessIndex].arrivalTime == processes[currentProcessIndex - 1].arrivalTime)
+        {
+
+            struct msgbuffer msg;
+            msg.mtype = 1;
+            msg.proc = processes[currentProcessIndex];
+            if (msgsnd(msgid, &msg, sizeof(msg.proc), 0) == -1)
+            {
+                perror("msgsnd");
+                exit(1);
+            }
+            // printf("sent process %d\n", currentProcessIndex);
+            // 2. Increment the current process index.
+            currentProcessIndex++;
+        }
+
+        kill(scheduler_fork, SIGUSR1); // sending signal to scheduler to recieve process from buffer
+
+        // TODO Exit the program when processes are finished not sent.
+        if (currentProcessIndex == processCount)
+        {
+            printf("finished\n");
+            kill(scheduler_fork, SIGUSR2);
+        }
+    }
+}
+
 void alarm_handler(int sig)
 {
     //TODO Handle the alarm signal
     // 1. Send the process to the scheduler.
-    printf("alarm\n");
+    // printf("alarm\n");
 
     struct msgbuffer msg;
     msg.mtype = 1;
@@ -113,7 +157,7 @@ void alarm_handler(int sig)
         perror("msgsnd");
         exit(1);
     }
-    printf("sent process %d\n", currentProcessIndex);
+    // printf("sent process %d\n", currentProcessIndex);
     // 2. Increment the current process index.
     currentProcessIndex++;
 
@@ -129,7 +173,7 @@ void alarm_handler(int sig)
             perror("msgsnd");
             exit(1);
         }
-        printf("sent process %d\n", currentProcessIndex);
+        // printf("sent process %d\n", currentProcessIndex);
         // 2. Increment the current process index.
         currentProcessIndex++;
     }
@@ -145,9 +189,12 @@ void alarm_handler(int sig)
         printf("finished\n");
         kill(scheduler_fork, SIGUSR2);
     }
+    else
+    {
+        // 4. Restart the alarm.
+        alarm(timeToWait);
+        // printf("time to wait is %d\n", timeToWait);
+    }
 
-    // 4. Restart the alarm.
-    alarm(timeToWait);
-    printf("time to wait is %d\n", timeToWait);
     signal(SIGALRM, alarm_handler);
 }

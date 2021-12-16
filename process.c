@@ -10,9 +10,6 @@ int main(int agrc, char *argv[])
     // get clk, running proc from shared memory
     const int start_time = getClk();
 
-    char log3[200];
-    sprintf(log3, "current start time is %d ", start_time);
-    write_to_file("proc.txt", log3);
     //TODO it needs to get the remaining time from somewhere
     int remainingtime = atoi(argv[1]);
     pid_t scheduler_pid = atoi(argv[2]);
@@ -34,17 +31,11 @@ int main(int agrc, char *argv[])
 
         if (time_elapsed == remainingtime)
         {
-            char log_message2[100];
-            sprintf(log_message2, "Current time is: %d remaining time is: %d time elapsed is: %d  start time is %d", current_time, remainingtime, time_elapsed, start_time);
-            write_to_file("proc.txt", log_message2);
-            // process is finished
+            
             break;
         }
         else if (time_elapsed > remainingtime)
         {
-            char log_message2[100];
-            sprintf(log_message2, "%d ", time_elapsed);
-            write_to_file("proc.txt", log_message2);
             // log error
             break;
         }

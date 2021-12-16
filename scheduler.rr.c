@@ -11,7 +11,7 @@ void sig_processGen_finish(int);
 void sig_processGen_handler(int);
 void sig_int_handler(int);
 
-int quantum = 2;
+int quantum = 1;
 int msgid;
 int isFinished_ProcGen = 0;
 struct CircularQueue myQueue;
@@ -24,28 +24,34 @@ int processRunning; // 0 if no process currently running
 int main(int argc, char *argv[])
 {
 
+    signal(SIGUSR1, sig_processGen_handler);
+    signal(SIGUSR2, sig_processGen_finish);
+    myQueue = initializeQueue();
+    key_t key = ftok("./clk.c", 'a');
+    msgid = msgget(key, IPC_CREAT | 0666);
+    if (msgid == -1)
+    {
+        char *error = "msgget";
+        write_to_file("proc.txt", error);
+        perror("msgget");
+        return 1;
+    }
+
     initClk();
 
     signal(SIGCHLD, sig_child_handler);
 
     // handling signal sent by process generator made it SIGCONT(and sigcont sent by child will be handled by SIGCHILD)
-    signal(SIGUSR1, sig_processGen_handler);
-    signal(SIGUSR2, sig_processGen_finish);
+
     signal(SIGINT, sig_int_handler);
 
     processRunning = 0; // initially no process is running
 
     // init message queue
-    key_t key = ftok("./clk.c", 'a');
-    msgid = msgget(key, IPC_CREAT | 0666);
-    if (msgid == -1)
-    {
-        perror("msgget");
-        return 1;
-    }
 
-    myQueue = initializeQueue();
+    // write_to_file("proc.txt", "message queue initialized");
 
+    // write_to_file("proc.txt", "Queue initialized");
     while (1)
     {
         // parent code
@@ -64,7 +70,7 @@ int schedule_process()
         // After the schedule picks the process
         // it will be executed
 
-        // editing before entering fork !! 
+        // editing before entering fork !!
         int timeForProcess = (quantum < picked_proc.remainingTime) ? quantum : picked_proc.remainingTime;
         currentlyProcessing = copyProcess(picked_proc);
         pop_queue(&myQueue);
@@ -153,6 +159,7 @@ void sig_processGen_handler(int signum)
 
     // recieving processes will be here in handler
     int rec_val = 0;
+    // write_to_file("proc.txt", "Processes arrived");
     while (rec_val != -1) // meaning message queue is empty
     {
         struct msgbuffer msg;
