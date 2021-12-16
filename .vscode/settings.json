@@ -2,6 +2,7 @@
     "files.associations": {
         "minheap.h": "c",
         "readingfiles.h": "c",
-        "circqueue.h": "c"
+        "circqueue.h": "c",
+        "headers.h": "c"
     }
 }
