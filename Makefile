@@ -1,9 +1,9 @@
 build:
 	gcc process_generator.c -o process_generator.out
 	gcc clk.c -o clk.out
-	gcc scheduler.hpf.c -o scheduler.hpf.out
-	gcc scheduler.rr.c -o scheduler.rr.out
-	gcc scheduler.srtn.c -o scheduler.srtn.out
+	gcc scheduler.hpf.c -o scheduler.hpf.out -lm
+	gcc scheduler.rr.c -o scheduler.rr.out -lm
+	gcc scheduler.srtn.c -o scheduler.srtn.out -lm
 	gcc process.c -o process.out
 	gcc test_generator.c -o test_generator.out
 
@@ -13,5 +13,6 @@ clean:
 all: clean build
 
 run:
-	echo "start" > proc.txt
+	echo "# clean file" > scheduler.log
+	echo "# clean file" > scheduler.perf
 	./process_generator.out
