@@ -39,8 +39,7 @@ int main(int argc, char *argv[])
     msgid = msgget(key, IPC_CREAT | 0666);
     if (msgid == -1)
     {
-        char *error = "msgget";
-        write_to_file("proc.txt", error);
+
         perror("msgget");
         return 1;
     }
@@ -122,7 +121,7 @@ int schedule_process()
             sprintf(scheduler_name, "%d", RR);
             sprintf(remaining_time, "%d", timeForProcess);
             // decreasing remaining time of process which will enter by either quantum or (its life time if smaller)
-            char *argv[] = {"./process.out", remaining_time, scheduler_id, scheduler_name, process_id, 0};
+            char *argv[] = {"./out/process.out", remaining_time, scheduler_id, scheduler_name, process_id, 0};
             execve(argv[0], &argv[0], NULL);
         }
         return 1;
@@ -214,9 +213,6 @@ void sig_processGen_handler(int signum)
             struct process proc = msg.proc;
             push_queue(&myQueue, proc);
             total_processes++;
-            // char log_message[100];
-            // sprintf(log_message, "Process %d added to queue at time %d , top id = %d", proc.processId, getClk(), processRunning);
-            // write_to_file("proc.txt", log_message);
         }
     }
 

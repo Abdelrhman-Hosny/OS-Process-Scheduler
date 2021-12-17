@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     {
         // clk code
         //clk.out
-        char *argv[] = {"clk.out", 0};
+        char *argv[] = {"./out/clk.out", 0};
         execve(argv[0], &argv[0], NULL);
     }
 
@@ -49,19 +49,19 @@ int main(int argc, char *argv[])
             char quantum_char[10];
             sprintf(quantum_char, "%d", quantum);
 
-            char *argv[] = {"scheduler.rr.out", quantum_char, 0};
+            char *argv[] = {"./out/scheduler.rr.out", quantum_char, 0};
             execve(argv[0], &argv[0], NULL);
         }
         else if (scheduler_type == HPF)
         {
             // hpf.out
-            char *argv[] = {"scheduler.hpf.out", 0};
+            char *argv[] = {"./out/scheduler.hpf.out", 0};
             execve(argv[0], &argv[0], NULL);
         }
         else if (scheduler_type == SRTN)
         {
             // srtn.out
-            char *argv[] = {"scheduler.srtn.out", 0};
+            char *argv[] = {"./out/scheduler.srtn.out", 0};
             execve(argv[0], &argv[0], NULL);
         }
         else

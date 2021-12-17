@@ -39,8 +39,8 @@ int *shmaddr;                   //
 struct process *shmaddrProcess; // this is the shared memory between currently running process and the scheduler
 //===============================
 
-char *log_file = "scheduler.log";
-char *perf_file = "scheduler.perf";
+char *log_file = "./log/scheduler.log";
+char *perf_file = "./log/scheduler.perf";
 
 int getClk()
 {

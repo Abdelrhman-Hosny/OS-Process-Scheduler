@@ -98,7 +98,7 @@ int schedule_process()
             sprintf(scheduler_id, "%d", getppid());
             sprintf(scheduler_name, "%d", HPF);
             sprintf(remaining_time, "%d", picked_proc.remainingTime);
-            char *argv[] = {"./process.out", remaining_time, scheduler_id, scheduler_name, process_id, 0};
+            char *argv[] = {"./out/process.out", remaining_time, scheduler_id, scheduler_name, process_id, 0};
             execve(argv[0], &argv[0], NULL);
         }
 
@@ -173,9 +173,6 @@ void sig_processGen_handler(int signum)
             total_processes++;
             struct process proc = msg.proc;
             push_heap(&heap, proc, proc.priority);
-            // char log_message[100];
-            // sprintf(log_message, "Process %d added to heap at time %d , top id = %d", proc.processId, getClk(), processRunning);
-            // write_to_file("proc.txt", log_message);
         }
     }
 

@@ -45,7 +45,6 @@ void handle_new_proc_arrival(int signum)
 {
     char log_message2[100];
     sprintf(log_message2, "recieved interrupt from scheduler at %d ", getClk());
-    write_to_file("proc.txt", log_message2);
     destroyClk(false);
     signal(SIGUSR1, handle_new_proc_arrival);
     exit(0);
