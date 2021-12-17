@@ -1,4 +1,4 @@
-#include <stdio.h>      //if you don't use scanf/printf change this include
+#include <stdio.h> //if you don't use scanf/printf change this include
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -10,10 +10,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <math.h>
 #include "./proc_data.h"
 #include "./data-structures/circQueue.h"
 #include "./data-structures/minHeap.h"
-
 
 typedef short SCHEDULER_TYPE;
 #define RR 0
@@ -32,21 +32,19 @@ typedef short bool;
 
 #define SHKEYPROC 231
 
-
 ///==============================
 //don't mess with this variable//
-int * shmaddr;                 //
-struct process* shmaddrProcess ;        // this is the shared memory between currently running process and the scheduler
+int *shmaddr;                   //
+struct process *shmaddrProcess; // this is the shared memory between currently running process and the scheduler
 //===============================
 
-
-
+char *log_file = "scheduler.log";
+char *perf_file = "scheduler.perf";
 
 int getClk()
 {
     return *shmaddr;
 }
-
 
 /*
  * All process call this function at the beginning to establish communication between them and the clock module.
@@ -62,9 +60,8 @@ void initClk()
         sleep(1);
         shmid = shmget(SHKEY, 4, 0444);
     }
-    shmaddr = (int *) shmat(shmid, (void *)0, 0);
+    shmaddr = (int *)shmat(shmid, (void *)0, 0);
 }
-
 
 /*
  * All process call this function at the end to release the communication
@@ -83,8 +80,6 @@ void destroyClk(bool terminateAll)
     }
 }
 
-
-
 // Process shared memory init
 void initShmProc()
 {
@@ -96,17 +91,14 @@ void initShmProc()
         sleep(1);
         shmid = shmget(SHKEYPROC, sizeof(struct process), 0444);
     }
-    shmaddrProcess = (struct process *) shmat(shmid, (void *)0, 0);
+    shmaddrProcess = (struct process *)shmat(shmid, (void *)0, 0);
 }
 
-
-void setShmProc(struct process* newProc)
+void setShmProc(struct process *newProc)
 {
 
     memcpy(shmaddrProcess, newProc, sizeof(struct process));
-
 };
-
 
 struct process getProcess()
 {
@@ -124,10 +116,10 @@ void destroyShmProc(bool terminateAll)
 
 void write_to_file(char *file_name, char *text)
 {
-   FILE * pFile;
+    FILE *pFile;
     pFile = fopen(file_name, "a");
-    
+
     fprintf(pFile, "%s\n", text);
-    
+
     fclose(pFile);
 }
