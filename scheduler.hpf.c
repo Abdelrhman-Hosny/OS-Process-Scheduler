@@ -20,7 +20,7 @@ int processRunning; // 0 if no process currently running
                     // 1 if there is currently a process running
 
 float Ex = 0, Ex2 = 0; // used to calculate std dev of WTA
-                     // using the formula: Ex = E[x^2] - E[x]^2
+                       // using the formula: Ex = E[x^2] - E[x]^2
 float total_wait_time = 0;
 float total_useful_time = 1; // because we start from t = 1;
 
@@ -68,10 +68,8 @@ int schedule_process()
         // Queue is not empty
         // After the schedule picks the process
         // it will be executed
-        picked_proc.startTime = getClk();
-        picked_proc.waitingTime = picked_proc.startTime - picked_proc.arrivalTime;
-        total_wait_time += picked_proc.waitingTime;
-        picked_proc.state = RUNNING;
+
+        initiate_process(&picked_proc, getClk() - picked_proc.arrivalTime, &total_wait_time);
         running_process = copyProcess(picked_proc);
 
         // start here
@@ -111,25 +109,7 @@ int schedule_process()
 
 void sig_int_handler(int signum)
 {
-    //print statistics
-    float mean_wta = Ex / total_processes;
-    float std_dev_wta = sqrt(Ex2 /total_processes - (mean_wta * mean_wta));
-    float mean_waiting_time = total_wait_time / total_processes;
-
-    char avg_wta_message[25];
-    char avg_waiting_time_message[25];
-    char std_dev_wta_message[25];
-    char cpu_utilization_message[25];
-    sprintf(avg_wta_message, "Avg WTA = %.2f", mean_wta);
-    sprintf(avg_waiting_time_message, "Avg Waiting = %.2f", mean_waiting_time);
-    sprintf(std_dev_wta_message, "Std WTA = %.2f", std_dev_wta);
-    sprintf(cpu_utilization_message, "CPU utilization = %.2f%%", (float)total_useful_time / (float)getClk() * 100);
-
-    write_to_file(perf_file, cpu_utilization_message);
-    write_to_file(perf_file, avg_wta_message);
-    write_to_file(perf_file, avg_waiting_time_message);
-    write_to_file(perf_file, std_dev_wta_message);
-
+    print_statistics(Ex, Ex2, total_processes, total_wait_time, total_useful_time);
     // scheduler cleanup
     destroyClk(false);
 
@@ -146,17 +126,17 @@ void sig_child_handler(int signum)
     {
 
         processRunning = 0; // meaning no process is running now
+        running_process.state = TERMINATED;
         running_process.finishTime = getClk();
+
         total_useful_time += running_process.runTime;
         int TA = running_process.finishTime - running_process.arrivalTime;
         float WTA = (float)TA / running_process.runTime;
-        running_process.state = TERMINATED;
         Ex += WTA;
         Ex2 += WTA * WTA;
 
         char log_message[100];
         sprintf(log_message, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f", running_process.finishTime, running_process.processId, running_process.arrivalTime, running_process.runTime, running_process.remainingTime, running_process.waitingTime, TA, WTA);
-
         write_to_file(log_file, log_message);
 
         if (peek_heap(&heap).arrivalTime == -1 && // heap is empty

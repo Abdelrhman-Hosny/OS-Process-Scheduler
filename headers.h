@@ -71,6 +71,46 @@ void initClk()
  *                      It terminates the whole system and releases resources.
 */
 
+void write_to_file(char *file_name, char *text)
+{
+    FILE *pFile;
+    pFile = fopen(file_name, "a");
+
+    fprintf(pFile, "%s\n", text);
+
+    fclose(pFile);
+}
+
+void print_statistics(float Ex, float Ex2, int total_processes, float total_wait_time, int total_useful_time)
+{
+    //print statistics
+    float mean_wta = Ex / total_processes;
+    float std_dev_wta = sqrt(Ex2 / total_processes - (mean_wta * mean_wta));
+    float mean_waiting_time = total_wait_time / total_processes;
+
+    char avg_wta_message[25];
+    char avg_waiting_time_message[25];
+    char std_dev_wta_message[25];
+    char cpu_utilization_message[25];
+    sprintf(avg_wta_message, "Avg WTA = %.2f", mean_wta);
+    sprintf(avg_waiting_time_message, "Avg Waiting = %.2f", mean_waiting_time);
+    sprintf(std_dev_wta_message, "Std WTA = %.2f", std_dev_wta);
+    sprintf(cpu_utilization_message, "CPU utilization = %.2f%%", (float)total_useful_time / (float)getClk() * 100);
+
+    write_to_file(perf_file, cpu_utilization_message);
+    write_to_file(perf_file, avg_wta_message);
+    write_to_file(perf_file, avg_waiting_time_message);
+    write_to_file(perf_file, std_dev_wta_message);
+}
+
+void initiate_process(struct process *picked_proc, int wait_time, float *total_wait_time)
+{
+    picked_proc->startTime = getClk();
+    picked_proc->waitingTime = wait_time;
+    *total_wait_time += picked_proc->waitingTime;
+    picked_proc->state = RUNNING;
+}
+
 void destroyClk(bool terminateAll)
 {
     shmdt(shmaddr);
@@ -112,14 +152,4 @@ void destroyShmProc(bool terminateAll)
     {
         killpg(getpgrp(), SIGINT);
     }
-}
-
-void write_to_file(char *file_name, char *text)
-{
-    FILE *pFile;
-    pFile = fopen(file_name, "a");
-
-    fprintf(pFile, "%s\n", text);
-
-    fclose(pFile);
 }
