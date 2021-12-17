@@ -12,6 +12,7 @@ struct process
     int executionTime;
     int remainingTime;
     int finishTime;
+    int startTime;
 };
 
 struct process initializeProcess(
@@ -29,6 +30,7 @@ struct process initializeProcess(
     p.waitingTime = 0;
     p.executionTime = 0;
     p.finishTime = -1;
+    p.startTime = -1;
     return p;
 }
 
@@ -51,15 +53,5 @@ void initializeProcessPointer(
 
 struct process copyProcess(struct process input)
 {
-    struct process copied;
-    copied.runTime = input.runTime;
-    copied.priority = input.priority;
-    copied.processId = input.processId;
-    copied.arrivalTime = input.arrivalTime;
-    copied.state = input.state;
-    copied.waitingTime = input.waitingTime;
-    copied.executionTime = input.executionTime;
-    copied.remainingTime = input.remainingTime;
-    copied.finishTime = input.finishTime;
-    return copied ;
+    return input ;
 };
