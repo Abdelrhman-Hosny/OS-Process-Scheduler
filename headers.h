@@ -24,6 +24,7 @@ typedef short bool;
 #define true 1
 #define false 0
 
+#define PAUSED 3
 #define TERMINATED 2
 #define RUNNING 1
 #define WAITING 0
