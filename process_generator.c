@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     {
         // scheduler code
         //scheduler.out
-        char *argv[] = {"scheduler.rr.out", 0};
+        char *argv[] = {"scheduler.srtn.out", 0};
         execve(argv[0], &argv[0], NULL);
     }
 

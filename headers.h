@@ -107,8 +107,8 @@ void print_statistics(float Ex, float Ex2, int total_processes, float total_wait
 void initiate_process(struct process *picked_proc, int wait_time, float *total_wait_time)
 {
     picked_proc->startTime = getClk();
-    picked_proc->waitingTime = wait_time;
-    *total_wait_time += picked_proc->waitingTime;
+    picked_proc->waitingTime += wait_time;
+    *total_wait_time += wait_time;
     picked_proc->state = RUNNING;
 }
 

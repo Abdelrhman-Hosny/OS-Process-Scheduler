@@ -16,6 +16,12 @@ int msgid;
 int isFinished_ProcGen = 0;
 struct CircularQueue myQueue;
 
+int last_run_time = 0, total_processes = 0;
+float Ex = 0, Ex2 = 0; // used to calculate std dev of WTA
+                       // using the formula: Ex = E[x^2] - E[x]^2
+float total_wait_time = 0;
+float total_useful_time = 1; // because we start from t = 1;
+
 struct process currentlyProcessing; // will hold processes currently processing
 
 int processRunning; // 0 if no process currently running
@@ -69,10 +75,33 @@ int schedule_process()
 
         // editing before entering fork !!
         int timeForProcess = (quantum < picked_proc.remainingTime) ? quantum : picked_proc.remainingTime;
+
+        // start
+        int wait_time = 0;
+        char resumed_started[100];
+        if (picked_proc.state == WAITING)
+        {
+            wait_time = getClk() - picked_proc.arrivalTime;
+            strcpy(resumed_started, "started");
+        }
+        else if (picked_proc.state == PAUSED)
+        {
+            wait_time = (getClk() - picked_proc.finishTime);
+            strcpy(resumed_started, "resumed");
+        }
+
+        initiate_process(&picked_proc, wait_time, &total_wait_time);
+
+        char log_message[100];
+        sprintf(log_message, "At time %d process %d %s arr %d total %d remain %d wait %d", picked_proc.startTime, picked_proc.processId, resumed_started, picked_proc.arrivalTime, picked_proc.runTime, picked_proc.remainingTime, picked_proc.waitingTime);
+        write_to_file(log_file, log_message);
+
+        // end
+
         currentlyProcessing = copyProcess(picked_proc);
         pop_queue(&myQueue);
         currentlyProcessing.remainingTime -= timeForProcess;
-
+        last_run_time = getClk();
         int pid = fork();
 
         if (pid == -1)
@@ -102,6 +131,7 @@ int schedule_process()
 void sig_int_handler(int signum)
 {
     // scheduler cleanup
+    print_statistics(Ex, Ex2, total_processes, total_wait_time, total_useful_time);
     destroyClk(false);
 
     exit(0);
@@ -118,19 +148,34 @@ void sig_child_handler(int signum)
         processRunning = 0; // meaning no process is running now
         int finish_time = getClk();
 
-        if (WEXITSTATUS(status) == currentlyProcessing.processId && currentlyProcessing.remainingTime != 0)
+        if (WEXITSTATUS(status) == currentlyProcessing.processId &&
+            currentlyProcessing.remainingTime != 0)
         {
+            // we use finished time in wait time calculation
+            // after process is paused
+            // and set it to the correct value when it finishes
+            total_useful_time += quantum;
+            currentlyProcessing.finishTime = finish_time;
+            currentlyProcessing.state = PAUSED;
             char log_message[100];
-            sprintf(log_message, "Process %d paused at %d , remaining time %d", WEXITSTATUS(status), finish_time, currentlyProcessing.remainingTime);
-            write_to_file("proc.txt", log_message);
+            sprintf(log_message, "At time %d process %d stopped arr %d total %d remain %d wait %d", currentlyProcessing.finishTime, currentlyProcessing.processId, currentlyProcessing.arrivalTime, currentlyProcessing.runTime, currentlyProcessing.remainingTime, currentlyProcessing.waitingTime);
+            write_to_file(log_file, log_message);
             push_queue(&myQueue, currentlyProcessing);
         }
         else
         {
             // discard process
+            currentlyProcessing.finishTime = finish_time;
+
+            total_useful_time += (finish_time - last_run_time);
+            int TA = currentlyProcessing.finishTime - currentlyProcessing.arrivalTime;
+            float WTA = (float)TA / currentlyProcessing.runTime;
+            Ex += WTA;
+            Ex2 += WTA * WTA;
+
             char log_message[100];
-            sprintf(log_message, "Process %d finished at %d", WEXITSTATUS(status), finish_time);
-            write_to_file("proc.txt", log_message);
+            sprintf(log_message, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f", currentlyProcessing.finishTime, currentlyProcessing.processId, currentlyProcessing.arrivalTime, currentlyProcessing.runTime, currentlyProcessing.remainingTime, currentlyProcessing.waitingTime, TA, WTA);
+            write_to_file(log_file, log_message);
         }
 
         if (peek_queue(&myQueue).arrivalTime == -1 && // queue is empty
@@ -165,10 +210,11 @@ void sig_processGen_handler(int signum)
         {
             // add process to queue
             struct process proc = msg.proc;
-            char log_message[100];
             push_queue(&myQueue, proc);
-            sprintf(log_message, "Process %d added to queue at time %d , top id = %d", proc.processId, getClk(), processRunning);
-            write_to_file("proc.txt", log_message);
+            total_processes++;
+            // char log_message[100];
+            // sprintf(log_message, "Process %d added to queue at time %d , top id = %d", proc.processId, getClk(), processRunning);
+            // write_to_file("proc.txt", log_message);
         }
     }
 

@@ -77,7 +77,7 @@ int schedule_process()
         }
         else if (picked_proc.state == PAUSED)
         {
-            wait_time = picked_proc.waitingTime + (getClk() - picked_proc.finishTime);
+            wait_time = (getClk() - picked_proc.finishTime);
             strcpy(resumed_started, "resumed");
         }
 
