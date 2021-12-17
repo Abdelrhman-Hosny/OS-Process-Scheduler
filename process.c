@@ -16,10 +16,6 @@ int main(int agrc, char *argv[])
     SCHEDULER_TYPE sched_type = atoi(argv[3]);
     int pid = atoi(argv[4]);
 
-    char log_message[100];
-    sprintf(log_message, "::Process %d started at %d, remaining time %d and my id is: %d", pid, start_time, remainingtime,getpid());
-    write_to_file("./proc.txt", log_message);
-
     int i = 0;
     while (remainingtime > 0)
     {
