@@ -92,7 +92,7 @@ void push_heap(struct MinHeap* heap, struct process d, int p)
         // Traverse the list and find a
         // position to insert new MinHeapNode
         while (start->next != NULL &&
-            start->next->priority < p)
+            start->next->priority <= p)
         {
             start = start->next;
         }
