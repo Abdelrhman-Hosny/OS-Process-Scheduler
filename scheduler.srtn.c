@@ -16,10 +16,15 @@ int msgid;
 int isFinished_ProcGen = 0;
 struct MinHeap heap;
 int last_run_time = 0;
+float Ex = 0, Ex2 = 0; // used to calculate std dev of WTA
+                       // using the formula: Ex = E[x^2] - E[x]^2
+float total_wait_time = 0;
+float total_useful_time = 1; // because we start from t = 1;
 
 struct process running_process;
 int processRunning; // 0 if no process currently running
                     // 1 if there is currently a process running
+int total_processes = 0;
 
 int main(int argc, char *argv[])
 {
@@ -63,6 +68,24 @@ int schedule_process()
         // Queue is not empty
         // After the schedule picks the process
         // it will be executed
+        int wait_time = 0;
+        char resumed_started[100];
+        if (picked_proc.state == WAITING)
+        {
+            wait_time = getClk() - picked_proc.arrivalTime;
+            strcpy(resumed_started, "started");
+        }
+        else if (picked_proc.state == PAUSED)
+        {
+            wait_time = picked_proc.waitingTime + (getClk() - picked_proc.finishTime);
+            strcpy(resumed_started, "resumed");
+        }
+
+        initiate_process(&picked_proc, wait_time, &total_wait_time);
+
+        char log_message[100];
+        sprintf(log_message, "At time %d process %d %s arr %d total %d remain %d wait %d", picked_proc.startTime, picked_proc.processId, resumed_started, picked_proc.arrivalTime, picked_proc.runTime, picked_proc.remainingTime, picked_proc.waitingTime);
+        write_to_file(log_file, log_message);
 
         running_process = copyProcess(picked_proc);
         pop_heap(&heap);
@@ -98,6 +121,7 @@ int schedule_process()
 void sig_int_handler(int signum)
 {
     // scheduler cleanup
+    print_statistics(Ex, Ex2, total_processes, total_wait_time, total_useful_time);
     destroyClk(false);
 
     exit(0);
@@ -111,15 +135,22 @@ void sig_child_handler(int signum)
     pid = wait(&status);
     if (WIFEXITED(status))
     {
-
+        // if exit code == 0, this means that
+        // the scheduler interrupted the process
         if (WEXITSTATUS(status) != 0)
         {
             processRunning = 0; // meaning no process is running now
-            int finish_time = getClk();
+            running_process.finishTime = getClk();
+
+            total_useful_time += running_process.remainingTime;
+            int TA = running_process.finishTime - running_process.arrivalTime;
+            float WTA = (float)TA / running_process.runTime;
+            Ex += WTA;
+            Ex2 += WTA * WTA;
 
             char log_message[100];
-            sprintf(log_message, "Process %d finished at %d", WEXITSTATUS(status), finish_time);
-            write_to_file("proc.txt", log_message);
+            sprintf(log_message, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f", running_process.finishTime, running_process.processId, running_process.arrivalTime, running_process.runTime, running_process.remainingTime, running_process.waitingTime, TA, WTA);
+            write_to_file(log_file, log_message);
 
             if (peek_heap(&heap).arrivalTime == -1 && // heap is empty
                 isFinished_ProcGen == 1)
@@ -154,25 +185,34 @@ void sig_processGen_handler(int signum)
         {
             // add process to heap
             struct process proc = msg.proc;
-            char log_message[100];
-            sprintf(log_message, "Process %d added to heap at time %d , Proc Running State = %d", proc.processId, getClk(), processRunning);
-            write_to_file("proc.txt", log_message);
             push_heap(&heap, proc, proc.remainingTime);
+            total_processes++;
+            // char log_message[100];
+            // sprintf(log_message, "Process %d added to heap at time %d , Proc Running State = %d", proc.processId, getClk(), processRunning);
+            // write_to_file("proc.txt", log_message);
         }
     }
 
     // interrupt running process and update it
     if (processRunning == 1)
     {
-        running_process.remainingTime -= (getClk() - last_run_time);
+        int process_run_time = getClk() - last_run_time;
+        total_useful_time += process_run_time;
+
+        running_process.remainingTime -= process_run_time;
         last_run_time = getClk();
         struct process next_proc = peek_heap(&heap);
         if (next_proc.remainingTime < running_process.remainingTime)
         {
+            //interrupt process
+            // used to update wait time of process
+            // as we wont use finish time, unless the process is finished
+            running_process.finishTime = getClk();
+            running_process.state = PAUSED;
             // kill old process and return to heap
             char log_message[100];
-            sprintf(log_message, "Process %d replaced at time %d, remaining time : %d glob pid is %d: ", running_process.processId, getClk(), running_process.remainingTime, glob_pid);
-            write_to_file("proc.txt", log_message);
+            sprintf(log_message, "At time %d process %d stopped arr %d total %d remain %d wait %d", running_process.finishTime, running_process.processId, running_process.arrivalTime, running_process.runTime, running_process.remainingTime, running_process.waitingTime);
+            write_to_file(log_file, log_message);
 
             kill(glob_pid, SIGINT);
 
