@@ -7,7 +7,7 @@ struct msgbuffer
     struct process proc;
 };
 void alarm_handler(int);
-int msgid, currentProcessIndex=0, timeToWait;
+int msgid, currentProcessIndex = 0, timeToWait;
 void clearResources(int);
 void handle_scheduler_sigchild(int);
 struct process *processes;
@@ -21,6 +21,16 @@ int main(int argc, char *argv[])
     signal(SIGINT, clearResources);
     signal(SIGCHLD, handle_scheduler_sigchild);
 
+    int scheduler_type, quantum;
+    printf("Enter scheduler type (0 for RR, 1 for HPF, 2 for SRTN):\n");
+    scanf("%d", &scheduler_type);
+
+    if (scheduler_type == RR)
+    {
+        printf("Enter quantum: ");
+        scanf("%d", &quantum);
+    }
+
     int clock_fork = fork();
     if (clock_fork == 0)
     {
@@ -33,12 +43,31 @@ int main(int argc, char *argv[])
     scheduler_fork = fork();
     if (scheduler_fork == 0)
     {
-        // scheduler code
-        //scheduler.out
-        char *argv[] = {"scheduler.srtn.out", 0};
-        execve(argv[0], &argv[0], NULL);
-    }
+        if (scheduler_type == RR)
+        {
+            // rr.out
+            char quantum_char[10];
+            sprintf(quantum_char, "%d", quantum);
 
+            char *argv[] = {"scheduler.rr.out", quantum_char, 0};
+            execve(argv[0], &argv[0], NULL);
+        }
+        else if (scheduler_type == HPF)
+        {
+            // hpf.out
+            char *argv[] = {"scheduler.hpf.out", 0};
+            execve(argv[0], &argv[0], NULL);
+        }
+        else if (scheduler_type == SRTN)
+        {
+            // srtn.out
+            char *argv[] = {"scheduler.srtn.out", 0};
+            execve(argv[0], &argv[0], NULL);
+        }
+        else
+        {
+        }
+    }
 
     char *fileName = "processes.txt";
     processCount = 0;
@@ -49,10 +78,10 @@ int main(int argc, char *argv[])
     }
 
     initClk();
-    
+
     int x = getClk();
     // printf("current time is %d\n", x);
-    
+
     key_t key = ftok("./clk.c", 'a');
     msgid = msgget(key, IPC_CREAT | 0666);
     if (msgid == -1)
@@ -60,8 +89,6 @@ int main(int argc, char *argv[])
         perror("msgget");
         return 1;
     }
-
-    
 
     initial_send_to_scheduler();
 

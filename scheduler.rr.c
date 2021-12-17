@@ -11,7 +11,7 @@ void sig_processGen_finish(int);
 void sig_processGen_handler(int);
 void sig_int_handler(int);
 
-int quantum = 1;
+int quantum;
 int msgid;
 int isFinished_ProcGen = 0;
 struct CircularQueue myQueue;
@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
 
     signal(SIGUSR1, sig_processGen_handler);
     signal(SIGUSR2, sig_processGen_finish);
+
+    quantum = atoi(argv[1]);
     myQueue = initializeQueue();
     key_t key = ftok("./clk.c", 'a');
     msgid = msgget(key, IPC_CREAT | 0666);
