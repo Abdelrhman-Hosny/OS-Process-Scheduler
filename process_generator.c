@@ -115,7 +115,6 @@ void handle_scheduler_sigchild(int signum)
 {
 
     int pid, status;
-    printf("scheduler is dead");
 
     pid = wait(&status);
     if (WIFEXITED(status))
