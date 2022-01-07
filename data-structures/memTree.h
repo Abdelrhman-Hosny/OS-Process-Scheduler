@@ -13,6 +13,7 @@ struct Node
     int pid;
     int state;
     int mem_start_position;
+    int capacitiy;
     struct Node *left;
     struct Node *right;
     struct Node *parent;
@@ -26,7 +27,7 @@ struct Node *create_node(int size, struct Node *parent)
     node->left = NULL;
     node->right = NULL;
     node->parent = parent;
-
+    node->capacitiy = 0;
     return node;
 }
 
@@ -50,12 +51,15 @@ struct Node *find_size(struct Node *root, int size)
     if (root == NULL)
         return NULL;
     if (root->size == size)
+    {
+        root->capacitiy += size;
         return root;
+    }
 
     if (root->size > size)
     {
         // no children
-        if (root->state == EMPTY || root->state == ROOT)
+        if (root->state == EMPTY || (root->state == ROOT && root->left == NULL && root->right == NULL))
         {
 
             struct Node *new_left = create_node(root->size / 2, root);
@@ -67,26 +71,57 @@ struct Node *find_size(struct Node *root, int size)
             root->right = new_right;
 
             root->left->mem_start_position = root->mem_start_position;
-            root->right->mem_start_position = root->mem_start_position + root->size/2;
+            root->right->mem_start_position = root->mem_start_position + root->size / 2;
 
             if (root->left->size == size)
+            {
+                new_left->capacitiy = new_left->size;
+                root->capacitiy += new_left->capacitiy;
+                // printf("(root value , capacity): %d\n", (root->size, root->capacitiy));
                 return root->left;
+            }
             else
-                return find_size(root->left, size);
-            
+            {
+                struct Node *found = find_size(root->left, size);
+                root->capacitiy += found->capacitiy;
+                // printf("(root value , capacity): %d\n", (root->size, root->capacitiy));
+                return found;
+            }
         }
         else if (root->state == HAS_CHILD)
         {
-            struct Node* found_node = find_size(root->left, size);
-            if (found_node != NULL && found_node->state == EMPTY)
-                return found_node;
+            // you should go for lowest capacity first
+            // printf("has child \n");
+            struct Node *found_node = NULL;
+            int full_size = root->left->size;
+            // printf("(full_size - root->left->capacitiy): %d\n", (full_size - root->left->capacitiy));
+            // printf("(full_size - root->right->capacitiy): %d\n", (full_size - root->right->capacitiy));
 
-            found_node = find_size(root->right, size);
-            if (found_node != NULL&& found_node->state == EMPTY)
-                return found_node;            
+            if ((full_size - root->left->capacitiy) < (full_size - root->right->capacitiy) &&
+                (full_size - root->left->capacitiy) >= size)
+            {
+                // printf("entered left \n");
+                // means left is tighter than right
+                found_node = find_size(root->left, size);
+                if (found_node != NULL && found_node->state == EMPTY)
+                {
+                    root->capacitiy += found_node->capacitiy;
+                    return found_node;
+                }
+            }
+            else
+            {
+                // printf(" entered right subtree of root %d , %d \n", root->size, root->capacitiy);
+                found_node = find_size(root->right, size);
+                if (found_node != NULL && found_node->state == EMPTY)
+                {
+                    root->capacitiy += found_node->capacitiy;
+
+                    return found_node;
+                }
+            }
         }
     }
-
     return NULL;
 }
 
@@ -148,6 +183,7 @@ void delete_children(struct Node *found_node_parent)
 void recombine_memory(struct Node *parent)
 {
     struct Node *found_node_parent = parent;
+    struct Node *my_parent_temp = parent;
 
     while (found_node_parent)
     {
@@ -159,6 +195,16 @@ void recombine_memory(struct Node *parent)
 
         if (found_node_parent->state != ROOT)
             found_node_parent = found_node_parent->parent;
+    }
+}
+void decrementCapacity(struct Node *parent)
+{
+    // decrementing till root
+    int size_to_decrement = parent->size / 2;
+    while (parent != NULL)
+    {
+        parent->capacitiy -= (size_to_decrement);
+        parent = parent->parent;
     }
 }
 
@@ -177,6 +223,7 @@ int deallocate(struct memTree *tree, int pid)
     found_node->pid = -1;
 
     struct Node *parent = found_node->parent;
+    decrementCapacity(parent);
 
     if (parent->left == found_node)
     {
@@ -201,6 +248,7 @@ void print_tree(struct Node *root)
         return;
 
     print_tree(root->left);
-    printf("%d %d %d %d - %d\n", root->size, root->pid, root->state, root->mem_start_position, root->mem_start_position + root->size);
+    printf("%d %d %d %d - %d\n", root->size, root->pid, root->capacitiy, root->mem_start_position, root->mem_start_position + root->size);
+
     print_tree(root->right);
 }
