@@ -14,16 +14,9 @@ struct MemNode
     int pid;
     int state;
     int mem_start_position;
-<<<<<<< HEAD
-    int capacitiy;
-    struct Node *left;
-    struct Node *right;
-    struct Node *parent;
-=======
     struct MemNode *left;
     struct MemNode *right;
     struct MemNode *parent;
->>>>>>> dcdb67137900e9d09e6249093f5e9c89712f2c05
 };
 
 struct MemNode *create_node(int size, struct MemNode *parent)
@@ -57,25 +50,6 @@ struct MemNode * find_size(struct MemNode *root, int size)
 {
     if (root == NULL || root->size < size)
         return NULL;
-<<<<<<< HEAD
-    if (root->size == size)
-    {
-        root->capacitiy += size;
-        return root;
-    }
-
-    if (root->size > size)
-    {
-        // no children
-        if (root->state == EMPTY || (root->state == ROOT && root->left == NULL && root->right == NULL))
-        {
-
-            struct Node *new_left = create_node(root->size / 2, root);
-            struct Node *new_right = create_node(root->size / 2, root);
-
-            root->state = HAS_CHILD;
-=======
->>>>>>> dcdb67137900e9d09e6249093f5e9c89712f2c05
 
     struct MemNode * left_val =  find_size(root->left, size);
     struct MemNode * right_val = find_size(root->right, size);
@@ -99,61 +73,6 @@ struct MemNode * find_size(struct MemNode *root, int size)
                 return found;
             }
         }
-        else if (root->state == HAS_CHILD)
-        {
-            // you should go for lowest capacity first
-            // printf("has child \n");
-            struct Node *found_node = NULL;
-            int full_size = root->left->size;
-            // printf("(full_size - root->left->capacitiy): %d\n", (full_size - root->left->capacitiy));
-            // printf("(full_size - root->right->capacitiy): %d\n", (full_size - root->right->capacitiy));
-
-            if ((full_size - root->left->capacitiy) < (full_size - root->right->capacitiy) &&
-                (full_size - root->left->capacitiy) >= size)
-            {
-                // printf("entered left \n");
-                // means left is tighter than right
-                found_node = find_size(root->left, size);
-                if (found_node != NULL && found_node->state == EMPTY)
-                {
-                    root->capacitiy += found_node->capacitiy;
-                    return found_node;
-                }
-            }
-            else
-            {
-                // printf(" entered right subtree of root %d , %d \n", root->size, root->capacitiy);
-                found_node = find_size(root->right, size);
-                if (found_node != NULL && found_node->state == EMPTY)
-                {
-                    root->capacitiy += found_node->capacitiy;
-
-                    return found_node;
-                }
-            }
-        }
-    }
-    return NULL;
-=======
-    // get values
-    int left_val_int = 2000, right_val_int = 2000;
-    if (root->left != NULL && root->left->size >= size)
-        left_val_int = root->left->size;
-    if (root->right != NULL && root->right->size >= size)
-        right_val_int = root->right->size;
-
-
-    // get minimum of left and right and root->size
-    if (left_val_int < right_val_int && left_val_int < root->size)
-        return root->left;
-    else if (right_val_int < left_val_int && right_val_int < root->size)
-        return root->right;
-    else
-        return root;
->>>>>>> dcdb67137900e9d09e6249093f5e9c89712f2c05
-}
-
-struct MemNode *get_process_node(struct MemNode *root, int pid)
 {
     if (root == NULL)
         return NULL;
@@ -169,7 +88,6 @@ struct MemNode *get_process_node(struct MemNode *root, int pid)
         return found_node;
 
     return NULL;
-}
 
 struct MemNode *find_closest_size(struct memTree *tree, int size)
 {
