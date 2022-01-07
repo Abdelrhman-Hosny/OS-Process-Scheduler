@@ -43,7 +43,7 @@ struct process peek_heap(struct MinHeap * heap)
 {
     if (heap->head == NULL)
     {
-        struct process data = initializeProcess(0,0,0, -1);
+        struct process data = initializeProcess(0,0,0, -1, 5);
         return data;
     }
     else

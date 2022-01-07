@@ -42,6 +42,7 @@ struct process *shmaddrProcess; // this is the shared memory between currently r
 
 char *log_file = "./log/scheduler.log";
 char *perf_file = "./log/scheduler.perf";
+char *mem_file = "./log/memory.log";
 
 int getClk()
 {

@@ -84,21 +84,33 @@ int schedule_process()
         char resumed_started[100];
         if (picked_proc.state == WAITING)
         {
+            int mem_start_position = allocate(memory, picked_proc.processId, picked_proc.size);
+            if (mem_start_position == -1)
+                return 0;
+
+            picked_proc.mem_start_position = mem_start_position;
+
             wait_time = getClk() - picked_proc.arrivalTime;
+
+            initiate_process(&picked_proc, wait_time, &total_wait_time);
             strcpy(resumed_started, "started");
+            int total_size = pow(2, ceil(log2(picked_proc.size)));
+            char log_message2[100];
+            sprintf(log_message2, "At time %d allocated %d bytes for process %d from %d to %d",
+                    picked_proc.startTime, picked_proc.size, picked_proc.processId, picked_proc.mem_start_position, picked_proc.mem_start_position + total_size);
+            write_to_file(mem_file, log_message2);
         }
         else if (picked_proc.state == PAUSED)
         {
             wait_time = (getClk() - picked_proc.finishTime);
             strcpy(resumed_started, "resumed");
-        }
 
-        initiate_process(&picked_proc, wait_time, &total_wait_time);
+            initiate_process(&picked_proc, wait_time, &total_wait_time);
+        }
 
         char log_message[100];
         sprintf(log_message, "At time %d process %d %s arr %d total %d remain %d wait %d", picked_proc.startTime, picked_proc.processId, resumed_started, picked_proc.arrivalTime, picked_proc.runTime, picked_proc.remainingTime, picked_proc.waitingTime);
         write_to_file(log_file, log_message);
-
         // end
 
         currentlyProcessing = copyProcess(picked_proc);
@@ -177,8 +189,16 @@ void sig_child_handler(int signum)
             Ex2 += WTA * WTA;
 
             char log_message[100];
-            sprintf(log_message, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f", currentlyProcessing.finishTime, currentlyProcessing.processId, currentlyProcessing.arrivalTime, currentlyProcessing.runTime, currentlyProcessing.remainingTime, currentlyProcessing.waitingTime, TA, WTA);
+            sprintf(log_message, "At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f",
+                    currentlyProcessing.finishTime, currentlyProcessing.processId, currentlyProcessing.arrivalTime, currentlyProcessing.runTime, currentlyProcessing.remainingTime, currentlyProcessing.waitingTime, TA, WTA);
             write_to_file(log_file, log_message);
+
+            deallocate(memory, currentlyProcessing.processId);
+            int total_size = pow(2, ceil(log2(currentlyProcessing.size)));
+            char log_message2[100];
+            sprintf(log_message2, "At time %d freed %d bytes from process %d from %d to %d",
+                    currentlyProcessing.finishTime, currentlyProcessing.size, currentlyProcessing.processId, currentlyProcessing.mem_start_position, currentlyProcessing.mem_start_position + total_size);
+            write_to_file(mem_file, log_message2);
         }
 
         if (peek_queue(&myQueue).arrivalTime == -1 && // queue is empty
