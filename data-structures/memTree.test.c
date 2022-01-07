@@ -7,6 +7,11 @@ int main()
     allocate(tree, 1, 20);
     print_tree(tree->root);
     printf("----------------\n");
+    // deallocate(tree, 1);
+    // print_tree(tree->root);
+    // printf("----------------\n");
+    // return 0;
+    
     allocate(tree, 2, 15);
     print_tree(tree->root);
     printf("----------------\n");
@@ -35,6 +40,12 @@ int main()
     allocate(tree, 7, 15);
     print_tree(tree->root);
     printf("----------------\n");
+    deallocate(tree, 6);
+    deallocate(tree, 5);
+    deallocate(tree, 7);
+    print_tree(tree->root);
+    printf("----------------\n");
+    
 
     return 0;
 }

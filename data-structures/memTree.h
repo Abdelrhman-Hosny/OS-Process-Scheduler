@@ -12,6 +12,7 @@ struct Node
     int size;
     int pid;
     int state;
+    int mem_start_position;
     struct Node *left;
     struct Node *right;
     struct Node *parent;
@@ -25,7 +26,7 @@ struct Node *create_node(int size, struct Node *parent)
     node->left = NULL;
     node->right = NULL;
     node->parent = parent;
-    
+
     return node;
 }
 
@@ -33,7 +34,6 @@ struct memTree
 {
     /* data */
     struct Node *root;
-    
 };
 
 struct memTree *create_memTree()
@@ -41,9 +41,9 @@ struct memTree *create_memTree()
     struct memTree *tree = (struct memTree *)malloc(sizeof(struct memTree));
     tree->root = create_node(MEM_SIZE, NULL);
     tree->root->state = ROOT;
+    tree->root->mem_start_position = 0;
     return tree;
 }
-
 
 struct Node *find_size(struct Node *root, int size)
 {
@@ -52,23 +52,39 @@ struct Node *find_size(struct Node *root, int size)
     if (root->size == size)
         return root;
 
-    if (root->size > size && root->size != 1)
+    if (root->size > size)
     {
-        struct Node *new_left = create_node(root->size / 2, root);
-        struct Node *new_right = create_node(root->size / 2, root);
+        // no children
+        if (root->state == EMPTY || root->state == ROOT)
+        {
 
-        root->state = HAS_CHILD;
+            struct Node *new_left = create_node(root->size / 2, root);
+            struct Node *new_right = create_node(root->size / 2, root);
 
-        root->left = new_left;
-        root->right = new_right;
+            root->state = HAS_CHILD;
 
-        struct Node *found_node = find_size(root->left, size);
-        if (found_node != NULL)
-            return found_node;
+            root->left = new_left;
+            root->right = new_right;
 
-        found_node = find_size(root->right, size);
-        if (found_node != NULL)
-            return found_node;
+            root->left->mem_start_position = root->mem_start_position;
+            root->right->mem_start_position = root->mem_start_position + root->size/2;
+
+            if (root->left->size == size)
+                return root->left;
+            else
+                return find_size(root->left, size);
+            
+        }
+        else if (root->state == HAS_CHILD)
+        {
+            struct Node* found_node = find_size(root->left, size);
+            if (found_node != NULL && found_node->state == EMPTY)
+                return found_node;
+
+            found_node = find_size(root->right, size);
+            if (found_node != NULL&& found_node->state == EMPTY)
+                return found_node;            
+        }
     }
 
     return NULL;
@@ -111,13 +127,13 @@ int allocate(struct memTree *tree, int pid, int process_size)
 
     // if found node is null
     if (found_node == NULL)
-        return 0;
+        return -1;
 
     // if node is found
     found_node->state = HAS_PROCESS;
     found_node->pid = pid;
 
-    return 1;
+    return found_node->mem_start_position;
 }
 
 void delete_children(struct Node *found_node_parent)
@@ -153,20 +169,25 @@ int deallocate(struct memTree *tree, int pid)
 
     // if found node is null
     if (found_node == NULL)
-        return 0;
+        return -1;
+
+    printf("deallocate: %d\n", pid);
+
+    found_node->state = EMPTY;
+    found_node->pid = -1;
 
     struct Node *parent = found_node->parent;
 
     if (parent->left == found_node)
     {
-        if (parent->right->state == EMPTY)
+        if (parent->right->state == EMPTY || parent->right->state == ROOT)
         {
             recombine_memory(parent);
         }
     }
     else if (parent->right == found_node)
     {
-        if (parent->left->state == EMPTY)
+        if (parent->left->state == EMPTY || parent->right->state == ROOT)
         {
             recombine_memory(parent);
         }
@@ -180,7 +201,6 @@ void print_tree(struct Node *root)
         return;
 
     print_tree(root->left);
-    printf("%d %d %d\n", root->size, root->pid, root->state);
+    printf("%d %d %d %d - %d\n", root->size, root->pid, root->state, root->mem_start_position, root->mem_start_position + root->size);
     print_tree(root->right);
 }
-

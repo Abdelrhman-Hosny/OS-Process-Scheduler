@@ -14,6 +14,7 @@
 #include "./proc_data.h"
 #include "./data-structures/circQueue.h"
 #include "./data-structures/minHeap.h"
+#include "./data-structures/memTree.h"
 
 typedef short SCHEDULER_TYPE;
 #define RR 0

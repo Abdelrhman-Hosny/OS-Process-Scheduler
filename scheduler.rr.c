@@ -15,6 +15,7 @@ int quantum;
 int msgid;
 int isFinished_ProcGen = 0;
 struct CircularQueue myQueue;
+struct memTree *memory;
 
 int last_run_time = 0, total_processes = 0;
 float Ex = 0, Ex2 = 0; // used to calculate std dev of WTA
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
 
     quantum = atoi(argv[1]);
     myQueue = initializeQueue();
+    memory = create_memTree();
     key_t key = ftok("./clk.c", 'a');
     msgid = msgget(key, IPC_CREAT | 0666);
     if (msgid == -1)
