@@ -4,7 +4,7 @@ int main()
 {
     struct memTree *tree = create_memTree();
 
-    allocate(tree, 1, 20);
+    allocate(tree, 1, 64);
     print_tree(tree->root);
     printf("----------------\n");
 
