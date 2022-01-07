@@ -1,27 +1,34 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define MEM_SIZE 128
+#define MEM_SIZE 1024
 #define EMPTY 0
 #define HAS_PROCESS 1
 #define HAS_CHILD 2
 #define ROOT 4
 
-struct Node
+
+struct MemNode
 {
     int size;
     int pid;
     int state;
     int mem_start_position;
+<<<<<<< HEAD
     int capacitiy;
     struct Node *left;
     struct Node *right;
     struct Node *parent;
+=======
+    struct MemNode *left;
+    struct MemNode *right;
+    struct MemNode *parent;
+>>>>>>> dcdb67137900e9d09e6249093f5e9c89712f2c05
 };
 
-struct Node *create_node(int size, struct Node *parent)
+struct MemNode *create_node(int size, struct MemNode *parent)
 {
-    struct Node *node = (struct Node *)malloc(sizeof(struct Node));
+    struct MemNode *node = (struct MemNode *)malloc(sizeof(struct MemNode));
     node->size = size;
     node->pid = -1;
     node->left = NULL;
@@ -34,7 +41,7 @@ struct Node *create_node(int size, struct Node *parent)
 struct memTree
 {
     /* data */
-    struct Node *root;
+    struct MemNode *root;
 };
 
 struct memTree *create_memTree()
@@ -45,11 +52,12 @@ struct memTree *create_memTree()
     tree->root->mem_start_position = 0;
     return tree;
 }
-
-struct Node *find_size(struct Node *root, int size)
+// 65 - 128                                         
+struct MemNode * find_size(struct MemNode *root, int size)
 {
-    if (root == NULL)
+    if (root == NULL || root->size < size)
         return NULL;
+<<<<<<< HEAD
     if (root->size == size)
     {
         root->capacitiy += size;
@@ -66,10 +74,13 @@ struct Node *find_size(struct Node *root, int size)
             struct Node *new_right = create_node(root->size / 2, root);
 
             root->state = HAS_CHILD;
+=======
+>>>>>>> dcdb67137900e9d09e6249093f5e9c89712f2c05
 
-            root->left = new_left;
-            root->right = new_right;
+    struct MemNode * left_val =  find_size(root->left, size);
+    struct MemNode * right_val = find_size(root->right, size);
 
+<<<<<<< HEAD
             root->left->mem_start_position = root->mem_start_position;
             root->right->mem_start_position = root->mem_start_position + root->size / 2;
 
@@ -123,16 +134,33 @@ struct Node *find_size(struct Node *root, int size)
         }
     }
     return NULL;
+=======
+    // get values
+    int left_val_int = 2000, right_val_int = 2000;
+    if (root->left != NULL && root->left->size >= size)
+        left_val_int = root->left->size;
+    if (root->right != NULL && root->right->size >= size)
+        right_val_int = root->right->size;
+
+
+    // get minimum of left and right and root->size
+    if (left_val_int < right_val_int && left_val_int < root->size)
+        return root->left;
+    else if (right_val_int < left_val_int && right_val_int < root->size)
+        return root->right;
+    else
+        return root;
+>>>>>>> dcdb67137900e9d09e6249093f5e9c89712f2c05
 }
 
-struct Node *get_process_node(struct Node *root, int pid)
+struct MemNode *get_process_node(struct MemNode *root, int pid)
 {
     if (root == NULL)
         return NULL;
     if (root->pid == pid)
         return root;
 
-    struct Node *found_node = get_process_node(root->left, pid);
+    struct MemNode *found_node = get_process_node(root->left, pid);
     if (found_node != NULL)
         return found_node;
 
@@ -143,14 +171,31 @@ struct Node *get_process_node(struct Node *root, int pid)
     return NULL;
 }
 
-struct Node *find_closest_size(struct memTree *tree, int size)
+struct MemNode *find_closest_size(struct memTree *tree, int size)
 {
     // get log2 of size
     float log2_size = log2(size);
     int wanted_size = pow(2, ceil(log2_size));
 
     // call find_closest_node
-    struct Node *found_node = find_size(tree->root, wanted_size);
+    struct MemNode *found_node = create_node(MEM_SIZE, NULL);
+    find_size(tree->root, wanted_size);
+
+    int i = 10;
+    while (found_node->size != wanted_size && i > 0)
+    {
+        /* code */
+        struct MemNode *left_node = create_node(found_node->size/2, found_node);
+        struct MemNode *right_node = create_node(found_node->size/2, found_node);
+
+        found_node->left = left_node;
+        found_node->right = right_node;
+            
+        find_size(tree->root, wanted_size );
+
+        printf("%d - %d\n", found_node->size, wanted_size);
+        i--;        
+    }
 
     return found_node;
 }
@@ -158,7 +203,7 @@ struct Node *find_closest_size(struct memTree *tree, int size)
 int allocate(struct memTree *tree, int pid, int process_size)
 {
     // find closest node
-    struct Node *found_node = find_closest_size(tree, process_size);
+    struct MemNode *found_node = find_closest_size(tree, process_size);
 
     // if found node is null
     if (found_node == NULL)
@@ -171,7 +216,7 @@ int allocate(struct memTree *tree, int pid, int process_size)
     return found_node->mem_start_position;
 }
 
-void delete_children(struct Node *found_node_parent)
+void delete_children(struct MemNode *found_node_parent)
 {
     free(found_node_parent->left);
     found_node_parent->left = NULL;
@@ -180,10 +225,14 @@ void delete_children(struct Node *found_node_parent)
     found_node_parent->state = EMPTY;
 }
 
-void recombine_memory(struct Node *parent)
+void recombine_memory(struct MemNode *parent)
 {
+<<<<<<< HEAD
     struct Node *found_node_parent = parent;
     struct Node *my_parent_temp = parent;
+=======
+    struct MemNode *found_node_parent = parent;
+>>>>>>> dcdb67137900e9d09e6249093f5e9c89712f2c05
 
     while (found_node_parent)
     {
@@ -211,7 +260,7 @@ void decrementCapacity(struct Node *parent)
 int deallocate(struct memTree *tree, int pid)
 {
     // find process node
-    struct Node *found_node = get_process_node(tree->root, pid);
+    struct MemNode *found_node = get_process_node(tree->root, pid);
 
     // if found node is null
     if (found_node == NULL)
@@ -222,8 +271,12 @@ int deallocate(struct memTree *tree, int pid)
     found_node->state = EMPTY;
     found_node->pid = -1;
 
+<<<<<<< HEAD
     struct Node *parent = found_node->parent;
     decrementCapacity(parent);
+=======
+    struct MemNode *parent = found_node->parent;
+>>>>>>> dcdb67137900e9d09e6249093f5e9c89712f2c05
 
     if (parent->left == found_node)
     {
@@ -242,7 +295,7 @@ int deallocate(struct memTree *tree, int pid)
     return 1;
 }
 
-void print_tree(struct Node *root)
+void print_tree(struct MemNode *root)
 {
     if (root == NULL)
         return;

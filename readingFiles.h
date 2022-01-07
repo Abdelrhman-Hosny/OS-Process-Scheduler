@@ -57,7 +57,7 @@ struct process *readProccesses(char *fileName, int *countArr)
         struct process *currentProcess = (struct process *)malloc(sizeof(struct process));
 
         //assigning process parameters
-        initializeProcessPointer(currentProcess, arr[2], arr[3], arr[0], arr[1]);
+        initializeProcessPointer(currentProcess, arr[2], arr[3], arr[0], arr[1], arr[4]);
 
         proccesses[counter] = *currentProcess;
         counter++;
