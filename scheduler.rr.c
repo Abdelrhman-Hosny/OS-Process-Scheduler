@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
     quantum = atoi(argv[1]);
     myQueue = initializeQueue();
-    memory = create_memTree();
+    memory = create_memTree(1024);
     key_t key = ftok("./clk.c", 'a');
     msgid = msgget(key, IPC_CREAT | 0666);
     if (msgid == -1)

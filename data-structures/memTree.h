@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define MEM_SIZE 128
+#define MEM_SIZE 1024
 #define EMPTY 0
 #define HAS_PROCESS 1
 #define HAS_CHILD 2
@@ -35,10 +35,10 @@ struct memTree
     struct MemNode *root;
 };
 
-struct memTree *create_memTree()
+struct memTree *create_memTree(int mem_size)
 {
     struct memTree *tree = (struct memTree *)malloc(sizeof(struct memTree));
-    tree->root = create_node(MEM_SIZE, NULL);
+    tree->root = create_node(mem_size, NULL);
     tree->root->state = ROOT;
     tree->root->mem_start_position = 0;
     return tree;
@@ -53,19 +53,19 @@ struct MemNode *find_size(struct MemNode *root, int size)
     struct MemNode *right = find_size(root->right, size);
     // get values
     int left_int = 20000, right_int = 20000;
-    if (left != NULL && left->size >= size)
+    if (left != NULL && left->size >= size && left->state == EMPTY )
     {
         left_int = left->size;
     }
-    if (right != NULL && right->size >= size)
+    if (right != NULL && right->size >= size && right->state == EMPTY)
     {
         right_int = right->size;
     }
 
     // get minimum of left and right and root->size
-    if (left_int <= right_int && left_int < root->size)
+    if (left_int <= right_int && left_int < root->size )
         return left;
-    else if (right_int < left_int && right_int < root->size)
+    else if (right_int < left_int && right_int < root->size )
         return right;
     else
         return root;
@@ -104,6 +104,9 @@ struct MemNode *find_closest_size(struct memTree *tree, int size)
         struct MemNode *left_node = create_node(found_node->size / 2, found_node);
         struct MemNode *right_node = create_node(found_node->size / 2, found_node);
         
+        left_node->mem_start_position = found_node->mem_start_position;
+        right_node->mem_start_position = found_node->mem_start_position + found_node->size / 2;
+
         left_node->state = EMPTY;
         right_node->state = EMPTY;
         found_node->left = left_node;
@@ -112,7 +115,7 @@ struct MemNode *find_closest_size(struct memTree *tree, int size)
 
         found_node = find_size(tree->root, wanted_size);
         // print_tree(tree->root);
-        printf("found_node : %d - %d\n", found_node->size, wanted_size);
+        printf("found_node : found : %d - wanted : %d - state : %d\n", found_node->size, wanted_size, found_node->state);
     }
 
     return found_node;

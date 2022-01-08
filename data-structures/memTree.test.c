@@ -2,9 +2,9 @@
 
 int main()
 {
-    struct memTree *tree = create_memTree();
+    struct memTree *tree = create_memTree(128);
 
-    allocate(tree, 1, 64);
+    allocate(tree, 1, 20);
     print_tree(tree->root);
     printf("----------------\n");
 
